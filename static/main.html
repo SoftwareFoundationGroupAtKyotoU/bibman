@@ -1,0 +1,790 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+                      "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+    <title>蔵書管理システム</title>
+    <!-- TODO -->
+    <link rel="stylesheet" type="text/css" href="./../css/main.css">
+    <script type="text/javascript" src="./../js/lib/jquery-1.9.1.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./../js/lib/handlebars.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./../js/lib/underscore.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./../js/app.js" charset="utf-8"></script>
+    <script id="book-item-template" type="text/x-handlebars-template" charset="utf-8">
+<ul class="book-list" data-offset="">
+  {{#each items}}
+  <li data-book-id="{{ book.id }}" >
+    <table>
+      <tr>
+        <td class="expand">
+          <img alt="詳細" title="詳細" src="./../images/fold.png" />
+          <img class="display-none" alt="詳細" title="詳細" src="./../images/unfold.png" />
+        </td>
+        <td class="item">
+          <div class="book-description-short" style="font-size: 1.3em" title="タイトル">
+              <span class="item-content">{{ book.title }}</span><img class="edit-mark display-none" title="編集" src="./../images/edit.jpg"  data-item="title" data-value="{{ book.title }}" data-type="text" />
+          </div>
+          <div class="book-description-short" > 
+            <span title="出版年">
+              <span class="item-content">{{ book.publish_year }}</span><img class="edit-mark display-none" title="編集" src="./../images/edit.jpg" data-item="publish_year" data-value="{{ book.publish_year }}" data-type="text" />
+            </span>
+            <span title="筆者">
+              <span class="item-content">{{ book.author }}</span><img class="edit-mark display-none" title="編集" src="./../images/edit.jpg" data-item="author" data-value="{{ book.author }}" data-type="text" />
+            </span>
+          </div>
+          <span class="lending">
+            {{#if lending.owner_other }}
+              <form class="bt-others-lending"><input type="submit" value="貸出中" /></form>
+              {{#if lending.reserver_me }}
+                <form class="bt-my-reservation"><input type="submit" value="予約キャンセル" /></form>
+              {{else}}
+                <form class="bt-my-reservation"><input type="submit" value="予約" /></form>
+                <!-- TODO 何人待ち  -->
+              {{/if}}
+            {{else}}
+              {{#if lending.owner_me }}
+                <form class="bt-my-lending"><input type="submit" value="返却" /></form>
+              {{else}}
+                <form class="bt-my-lending"><input type="submit" value="貸出" /></form>
+              {{/if}}
+            {{/if}}
+            {{#if lending.owner}}
+              返却期限日: {{ lending.due_date }}
+              現在の予約人数: {{ lending.reserver_count }}
+            {{/if}}
+          </span>
+          <div class="book-description display-none">
+            <div class="book-detail">
+              <table>
+                <tr>
+                  <th>出版社</th>
+                  <td>
+                    <span class="item-content">{{ book.publisher }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="publisher" data-value="{{ book.publisher }}" data-type="select" />
+                  </td>
+                </tr>
+                <tr>
+                  <th>ISBN</th>
+                  <td>
+                    <span class="item-content">{{ book.isbn }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="isbn" data-value="{{ book.isbn }}" data-type="text" />
+                  </td>
+                </tr>
+                <tr>
+                  <th>種類</th>
+                  <td>
+                    <span class="item-content">{{ book.kind }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="kind" data-value="{{ book.kind }}" data-type="select" />
+                  </td>
+                </tr>
+              </table>
+            </div>
+            {{#if history }}
+            <div class="lending-history">
+              <span>貸出履歴</span>
+              <table class="bt-lending-history">
+                <tr>
+                  <th class="user">ユーザー</th><th>開始日</th><th>返却日</th>
+                </tr>
+                {{#each history}}
+                <tr>
+                  <td>{{ account }}</td>
+                  <td>{{ from }}</td>
+                  <td>{{ to }}</td>
+                </tr>
+                {{/each}}
+              </table>
+            </div>
+            {{/if}}
+            <div class="tex-download">
+              <a class="bt-tex" href="./tex.cgi?id={{book.id}}">TeXファイルのダウンロード</a>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </li>
+  {{/each}}
+</ul>
+    </script>
+  </head>
+  <body style="padding-bottom: 100px">
+    <div id="menu">
+      <ul>
+        <li>検索</li>
+        <li>書籍登録</li>
+        <li style="font-size: 1.2em;">$u</li>
+        <li style="float:right">管理</li>
+      </ul>
+    </div>
+    <div class="contents">
+      <form id="search-form">
+        <input type="text" id="search-text"/>
+        <input type="submit" id="search-submit" value="検索" />
+      </form>
+      <div id="search-result" style="margin-top: 10px">
+        <div class="list-step" style="float: left;">
+          <!-- <a>&lt;</a> -->
+          <!-- <a>1</a> -->
+          <!-- <a href="">2</a> -->
+          <!-- <a href="">3</a> -->
+          <!-- <a href="">4</a> -->
+          <!-- <a href="">&gt;</a> -->
+        </div>
+        <div class="list-sort">
+          <select id="search-sort">
+            <option value="asc-title" selected="selected" >タイトル昇順</option>
+            <option value="asc-publish_year">発行年昇順</option>
+            <option value="asc-author">筆者昇順</option>
+            <option value="asc-publisher">出版社昇順</option>
+            <option value="asc-kind">種類昇順</option>
+            <option value="des-title">タイトル降順</option>
+            <option value="des-publish_year">発行年降順</option>
+            <option value="des-author">筆者降順</option>
+            <option value="des-publisher">出版社降順</option>
+            <option value="des-kind">種類降順</option>
+          </select>
+          <select id="search-number-limit">
+            <option value="10" selected="selected">10件</option>
+            <option value="20">20件</option>
+            <option value="30">30件</option>
+            <option value="40">40件</option>
+            <option value="50">50件</option>
+          </select>
+        </div>
+      </div>
+      <div id="book-search-list">
+        <ul class="book-list">
+          <li>
+            <table>
+              <tr>
+                <td class="expand">
+                  <img alt="詳細" title="詳細" src="./../images/fold.png" />
+                </td>
+                <td class="item">
+                  <div class="book-description-short" style="font-size: 1.3em;" title="タイトル">
+                    プログラミング入門<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" />
+                  </div>
+                  <div class="book-description-short">
+                    <span title="出版年">1982<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+                    <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+                  </div>
+                  <span class="lending">
+                    <form style="display: inline"><input type="submit" value="貸出" /></form>
+                    <form style="display: inline"><input disabled="disabled" type="submit" value="予約" /></form>
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </li>
+          <li>
+            <table>
+              <tr>
+                <td class="expand">
+                  <img alt="詳細" title="詳細" src="./../images/fold.png" />
+                </td>
+                <td class="item">
+                  <div class="book-description-short" style="font-size: 1.3em;" title="タイトル">
+                    新版・十六歳のオリザの未だかつてためしのない勇気が到達した最後の点と、到達しえた極限とを明らかにして、上々の首尾にいたった世界一周自転車旅行の冒険をしるす本<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" />
+                  </div>
+                  <div class="book-description-short">
+                    <span title="出版年">1982<img class="edit-mark" title="編集" style="display:none"  src="./../images/edit.jpg" /></span>
+                    <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+                  </div>
+                  <span class="lending">
+                    <form style="display: inline"><input disabled="disabled" type="submit" value="貸出中" /></form>
+                    <form style="display: inline"><input disabled="disabled" type="submit" value="予約済" /></form>
+                    <span>返却期限日: 2012/02/28</span>
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </li>
+          <li>
+            <table>
+              <tr>
+                <td class="expand">
+                  <img alt="詳細" title="詳細" src="./../images/unfold.png" />
+                </td>
+                <td class="item">
+                  <div class="book-description-short" style="font-size: 1.3em" title="タイトル">
+                    プログラミング入門<img class="edit-mark" title="編集" src="./../images/edit.jpg" />
+                  </div>
+                  <div class="book-description-short" > 
+                    <span title="出版年">1982<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
+                    <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
+                  </div>
+                  <span class="lending">
+                    <form style="display: inline"><input disabled="disabled" type="submit" value="貸出中" /></form>
+                    <form style="display: inline"><input type="submit" value="予約" /></form>
+                    <span>返却期限日: 2012/02/28</span>
+                  </span>
+                  <div clas="book-description">
+                    <div class="book-detail">
+                      <table>
+                        <tr>
+                          <th>出版社</th>
+                          <td>
+                            Springer<img class="edit-mark" title="編集"  src="./../images/edit.jpg" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>ISBN</th>
+                          <td><a href="...">9102199139</a><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td>
+                        </tr>
+                        <tr>
+                          <th>配置場所</th>
+                          <td>一研<img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td>
+                        </tr>
+                      </table>
+                    </div>
+                    <div class="lending-history">
+                      <span>貸出履歴</span>
+                      <table>
+                        <tr>
+                          <th class="user">ユーザー</th><th>開始日</th><th>返却日</th>
+                        </tr>
+                        <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                        <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                        <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                      </table>
+                      <div class="tex-download">
+                        <a href="." >TeXファイルのダウンロード</a>
+                      </div>
+                    </div>
+                  </div>
+                </tr>
+              </td>
+            </table>
+          </li>
+          <li>
+            <table>
+              <tr>
+                <td  class="expand">
+                  <img alt="詳細" title="詳細" src="./../images/fold.png" />
+                </td>
+                <td class="item">
+                  <div class="book-description-short" style="font-size: 1.3em">
+                    Introduction to Bisimulation and Coinduction<img class="edit-mark" title="編集"  style="display:none" src="./../images/edit.jpg" />
+                  </div>
+                  <div class="book-description-short">
+                    <span title="出版年">1982<img class="edit-mark" title="編集"  style="display:none" src="./../images/edit.jpg" /></span>
+                    <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+                  </div>
+                  <span class="lending">
+                    <form style="display: inline"><input disabled="disabled" type="submit" value="貸出中" /></form>
+                    <form style="display: inline"><input type="submit" value="予約キャンセル" /></form>
+                    <span>返却期限日: 2012/02/28</span>
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </li>
+          <li>
+            <table>
+              <tr>
+                <td  class="expand">
+                  <img alt="詳細" title="詳細" src="./../images/fold.png" />
+                </td>
+                <td class="item">
+                  <div class="book-description-short" style="font-size: 1.3em" title="タイトル">
+                    Introduction to Bisimulation and Coinduction<img class="edit-mark" title="編集"  style="display:none" src="./../images/edit.jpg" />
+                  </div>
+                  <div class="book-description-short">
+                    <span title="出版年">1982<img class="edit-mark" title="編集" tyle="display:none" src="./../images/edit.jpg" /></span>
+                    <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+                  </div>
+                  <span class="lending">
+                    <form style="display: inline"><input type="submit" value="返却" /></form>
+                    <form style="display: inline"><input disabled="disabled" type="submit" value="予約済" /></form>
+                    <span>返却期限日: 2012/02/28</span>
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </li>
+        </ul>
+      </div>
+      <div class="list-step">
+        <a>&lt;</a>
+        <a>1</a>
+        <a href="">2</a>
+        <a href="">3</a>
+        <a href="">4</a>
+        <a href="">&gt;</a>
+      </div>
+    </div>
+
+
+    <div id="book-register" class="contents">
+      <h3>書籍登録</h3>
+      <div id="register">
+        <form>
+          <table>
+            <tr>
+              <th>ISBN</th>
+              <td>
+                <input type="text" class="text" />
+                <button>Amazonから情報を取得</button>
+              </td>
+            </tr>
+            <tr>
+              <th>タイトル</th>
+              <td>
+                <input type="text" class="text" />
+              </td>
+            </tr>
+            <tr>
+              <th>筆者</th>
+              <td>
+                <input type="text" class="text" />
+                <span style="font-size: 0.8em; vertical-align: bottom">
+                  コンマ区切リで入力してください
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <th>出版年</th>
+              <td>
+                <input type="text" value="2012" class="text" />年
+              </td>
+            </tr>
+            <tr>
+              <th>出版社</th>
+              <td>
+                <select>
+                  <option>Springer</option>
+                  <option>ACM</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th>状況</th>
+              <td>
+                <select>
+                  <option>未購入</option>
+                  <option>注文済</option>
+                  <option>購入済</option>
+                </select>
+              </td>
+            </tr>
+          </table>
+          <input type="submit" value="登録" />
+        </form>
+      </div>
+      <div class="list-sort">
+        <select>
+          <option>タイトル昇順</option>
+          <option>筆者</option>
+          <option>発行年</option>
+          <option>登録日</option>
+        </select>
+      </div>
+      <h3>ほしい本リスト</h3>
+      <ul class="book-list">
+        <li>
+          <table>
+            <tr>
+              <td class="expand">
+                <img alt="詳細" title="詳細" src="./../images/fold.png" />
+              </td>
+              <td class="item">
+                <div class="book-description-short" style="font-size: 1.3em" title="タイトル">
+                  プログラミング入門<img class="edit-mark" title="編集" src="./../images/edit.jpg" />
+                </div>
+                <div class="book-description-short" > 
+                  <span title="出版年">1982<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
+                  <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
+                </div>
+                <div style="margin-top: 10px;">
+                  <table>
+                    <tr>
+                      <th>出版社</th>
+                      <td>
+                        Springer<img class="edit-mark" title="編集"  src="./../images/edit.jpg" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>ISBN</th>
+                      <td><a href="...">9102199139</a><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td>
+                    </tr>
+                    <tr>
+                      <th>状況</th>
+                      <td>
+                        <form>
+                          <select>
+                            <option>未購入</option>
+                            <option>注文済</option>
+                            <option>購入済</option>
+                          </select>
+                        </form>
+                      </td>
+                    </tr>
+                  </table>
+                  <div class="tex-download">
+                    <a href=".">TeXファイルのダウンロード</a>
+                  </div>
+                </div>
+              </tr>
+            </td>
+          </table>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+
+  <div class="contents">
+    <h3>貸出中</h3>
+    <ul class="book-list">
+      <li>
+        <table>
+          <tr>
+            <td class="expand">
+              <img alt="詳細" title="詳細" src="./../images/unfold.png" />
+            </td>
+            <td class="item">
+              <div class="book-description-short" style="font-size: 1.3em" title="タイトル">
+                プログラミング入門<img class="edit-mark" title="編集" src="./../images/edit.jpg" />
+              </div>
+              <div class="book-description-short" > 
+                <span title="出版年">1982<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
+                <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
+              </div>
+              <span class="lending">
+                <form style="display: inline"><input type="submit" value="返却" /></form>
+                <span>返却期限日: 2012/02/28</span>
+              </span>
+              <div class="book-description">
+                <div class="book-detail">
+                  <table>
+                    <tr>
+                      <th>出版社</th>
+                      <td>
+                        Springer<img class="edit-mark" title="編集"  src="./../images/edit.jpg" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>ISBN</th>
+                      <td><a href="...">9102199139</a><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td>
+                    </tr>
+                    <tr>
+                      <th>配置場所</th>
+                      <td>一研<img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="lending-history">
+                  <span>貸出履歴</span>
+                  <table>
+                    <tr>
+                      <th class="user">ユーザー</th><th>開始日</th><th>返却日</th>
+                    </tr>
+                    <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                    <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                    <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                  </table>
+                  <div class="tex-download">
+                    <a href=".">TeXファイルのダウンロード</a>
+                  </div>
+                </div>
+              </div>
+            </tr>
+          </td>
+        </table>
+      </li>
+      <li>
+        <table>
+          <tr>
+            <td  class="expand">
+              <img alt="詳細" title="詳細" src="./../images/fold.png" />
+            </td>
+            <td class="item">
+              <div class="book-description-short" style="font-size: 1.3em">
+                Introduction to Bisimulation and Coinduction<img class="edit-mark" title="編集"  style="display:none" src="./../images/edit.jpg" />
+              </div>
+              <div class="book-description-short">
+                <span title="出版年">1982<img class="edit-mark" title="編集"  style="display:none" src="./../images/edit.jpg" /></span>
+                <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+              </div>
+              <span class="lending">
+                <form style="display: inline"><input type="submit" value="返却" /></form>
+                <span>返却期限日: 2012/02/28</span>
+              </span>
+            </td>
+          </tr>
+        </table>
+      </li>
+    </ul>
+    <h3>予約中</h3>
+    <ul class="book-list">
+      <li>
+        <table>
+          <tr>
+            <td class="expand">
+              <img alt="詳細" title="詳細" src="./../images/unfold.png" />
+            </td>
+            <td class="item">
+              <div class="book-description-short" style="font-size: 1.3em" title="タイトル">
+                プログラミング入門<img class="edit-mark" title="編集" src="./../images/edit.jpg" />
+              </div>
+              <div class="book-description-short" > 
+                <span title="出版年">1982<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
+                <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
+              </div>
+              <span class="lending">
+                <form style="display: inline"><input type="submit" value="予約キャンセル" /></form>
+                <span>返却期限日: 2012/02/28</span>
+              </span>
+              <div class="book-description">
+                <div class="book-detail">
+                  <table>
+                    <tr>
+                      <th>出版社</th>
+                      <td>
+                        Springer<img class="edit-mark" title="編集"  src="./../images/edit.jpg" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>ISBN</th>
+                      <td><a href="...">9102199139</a><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td>
+                    </tr>
+                    <tr>
+                      <th>配置場所</th>
+                      <td>一研<img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="lending-history">
+                  <span>貸出履歴</span>
+                  <table>
+                    <tr>
+                      <th class="user">ユーザー</th><th>開始日</th><th>返却日</th>
+                    </tr>
+                    <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                    <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                    <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                  </table>
+                  <div class="tex-download">
+                    <a href="." >TeXファイルのダウンロード</a>
+                  </div>
+                </div>
+              </div>
+            </tr>
+          </td>
+        </table>
+      </li>
+      <li>
+        <table>
+          <tr>
+            <td  class="expand">
+              <img alt="詳細" title="詳細" src="./../images/fold.png" />
+            </td>
+            <td class="item">
+              <div class="book-description-short" style="font-size: 1.3em">
+                Introduction to Bisimulation and Coinduction<img class="edit-mark" title="編集"  style="display:none" src="./../images/edit.jpg" />
+              </div>
+              <div class="book-description-short">
+                <span title="出版年">1982<img class="edit-mark" title="編集"  style="display:none" src="./../images/edit.jpg" /></span>
+                <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+              </div>
+              <span class="lending">
+                <form style="display: inline"><input type="submit" value="予約キャンセル" /></form>
+                <span>返却期限日: 2012/02/28</span>
+              </span>
+            </td>
+          </tr>
+        </table>
+      </li>
+    </ul>
+    <h3>貸出履歴</h3>
+    <ul class="book-list">
+      <li>
+        <table>
+          <tr>
+            <td class="expand">
+              <img alt="詳細" title="詳細" src="./../images/fold.png" />
+            </td>
+            <td class="item">
+              <div class="book-description-short" style="font-size: 1.3em;" title="タイトル">
+                プログラミング入門<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" />
+              </div>
+              <div class="book-description-short">
+                <span title="出版年">1982<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+                <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </li>
+      <li>
+        <table>
+          <tr>
+            <td class="expand">
+              <img alt="詳細" title="詳細" src="./../images/fold.png" />
+            </td>
+            <td class="item">
+              <div class="book-description-short" style="font-size: 1.3em;" title="タイトル">
+                新版・十六歳のオリザの未だかつてためしのない勇気が到達した最後の点と、到達しえた極限とを明らかにして、上々の首尾にいたった世界一周自転車旅行の冒険をしるす本<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" />
+              </div>
+              <div class="book-description-short">
+                <span title="出版年">1982<img class="edit-mark" title="編集" style="display:none"  src="./../images/edit.jpg" /></span>
+                <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </li>
+      <li>
+        <table>
+          <tr>
+            <td class="expand">
+              <img alt="詳細" title="詳細" src="./../images/unfold.png" />
+            </td>
+            <td class="item">
+              <div class="book-description-short" style="font-size: 1.3em" title="タイトル">
+                プログラミング入門<img class="edit-mark" title="編集" src="./../images/edit.jpg" />
+              </div>
+              <div class="book-description-short" > 
+                <span title="出版年">1982<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
+                <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
+              </div>
+              <div class="book-description">
+                <div class="book-detail">
+                  <table>
+                    <tr>
+                      <th>出版社</th>
+                      <td>
+                        Springer<img class="edit-mark" title="編集"  src="./../images/edit.jpg" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>ISBN</th>
+                      <td><a href="...">9102199139</a><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td>
+                    </tr>
+                    <tr>
+                      <th>配置場所</th>
+                      <td>一研<img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="lending-history">
+                  <span>貸出履歴</span>
+                  <table>
+                    <tr>
+                      <th class="user">ユーザー</th><th>開始日</th><th>返却日</th>
+                    </tr>
+                    <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                    <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                    <tr><td>t-sekiym</td><td>2012/02/12</td><td>2012/02/13</td></tr>
+                  </table>
+                  <div class="tex-download">
+                    <a href=".">TeXファイルのダウンロード</a>
+                  </div>
+                </div>
+              </div>
+            </tr>
+          </td>
+        </table>
+      </li>
+      <li>
+        <table>
+          <tr>
+            <td  class="expand">
+              <img alt="詳細" title="詳細" src="./../images/fold.png" />
+            </td>
+            <td class="item">
+              <div class="book-description-short" style="font-size: 1.3em">
+                Introduction to Bisimulation and Coinduction<img class="edit-mark" title="編集"  style="display:none" src="./../images/edit.jpg" />
+              </div>
+              <div class="book-description-short">
+                <span title="出版年">1982<img class="edit-mark" title="編集"  style="display:none" src="./../images/edit.jpg" /></span>
+                <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </li>
+      <li>
+        <table>
+          <tr>
+            <td  class="expand">
+              <img alt="詳細" title="詳細" src="./../images/fold.png" />
+            </td>
+            <td class="item">
+              <div class="book-description-short" style="font-size: 1.3em" title="タイトル">
+                Introduction to Bisimulation and Coinduction<img class="edit-mark" title="編集"  style="display:none" src="./../images/edit.jpg" />
+              </div>
+              <div class="book-description-short">
+                <span title="出版年">1982<img class="edit-mark" title="編集" tyle="display:none" src="./../images/edit.jpg" /></span>
+                <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" style="display:none" src="./../images/edit.jpg" /></span>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </li>
+    </ul>
+  </div>
+
+  <!-- <li id="book-item-template"> -->
+  <!--   <table> -->
+  <!--     <tr> -->
+  <!--       <td class="expand"> -->
+  <!--         <img alt="詳細" title="詳細" src="./../images/unfold.png" /> -->
+  <!--       </td> -->
+  <!--       <td class="item"> -->
+  <!--         <div class="book-description-short" style="font-size: 1.3em" title="タイトル"> -->
+  <!--           <span class="bt-title" /><img class="edit-mark" title="編集" src="./../images/edit.jpg" /> -->
+  <!--         </div> -->
+  <!--         <div class="book-description-short" >  -->
+  <!--           <span title="出版年"> -->
+  <!--             <span class="bt-publish_year" /><img class="edit-mark" title="編集" src="./../images/edit.jpg" /> -->
+  <!--           </span> -->
+  <!--           <span title="筆者"> -->
+  <!--             <span class="bt-author" /><img class="edit-mark" title="編集" src="./../images/edit.jpg" /> -->
+  <!--           </span> -->
+  <!--         </div> -->
+  <!--         <span class="lending"> -->
+  <!--           <form class="bt-others-lending" style="display: none"><input type="submit" value="貸出中" /></form> -->
+  <!--           <form class="bt-my-lending" style="display: none"><input type="submit" value="返却" /></form> -->
+  <!--           <form class="bt-others-reserve" style="display: none"><input type="submit" value="予約" /></form> -->
+  <!--           <form class="bt-my-reserve" style="display: none"><input type="submit" value="予約キャンセル" /></form> -->
+  <!--           返却期限日: <span class="bt-lending_deadline" /> -->
+  <!--         </span> -->
+  <!--         <div clas="book-description"> -->
+  <!--           <div class="book-detail"> -->
+  <!--             <table> -->
+  <!--               <tr> -->
+  <!--                 <th>出版社</th> -->
+  <!--                 <td> -->
+  <!--                   <span class="bt-publisher"/><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /> -->
+  <!--                 </td> -->
+  <!--               </tr> -->
+  <!--               <tr> -->
+  <!--                 <th>ISBN</th> -->
+  <!--                 <td><a class="bt-isbn" /><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td> -->
+  <!--               </tr> -->
+  <!--               <tr> -->
+  <!--                 <th>配置場所</th> -->
+  <!--                 <td><span class="bt-kind" /><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td> -->
+  <!--               </tr> -->
+  <!--             </table> -->
+  <!--           </div> -->
+  <!--           <div class="lending-history"> -->
+  <!--             <span>貸出履歴</span> -->
+  <!--             <table class="bt-history"> -->
+  <!--               <tr> -->
+  <!--                 <th class="user">ユーザー</th><th>開始日</th><th>返却日</th> -->
+  <!--               </tr> -->
+  <!--             </table> -->
+  <!--             <div class="tex-download"> -->
+  <!--               <a class="bt-tex">TeXファイルのダウンロード</a> -->
+  <!--             </div> -->
+  <!--           </div> -->
+  <!--         </div> -->
+  <!--       </tr> -->
+  <!--     </td> -->
+  <!--   </table> -->
+  <!-- </li> -->
+
+</body>
+</html>

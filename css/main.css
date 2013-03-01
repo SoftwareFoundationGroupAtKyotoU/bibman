@@ -1,0 +1,223 @@
+
+.contents {
+    position: relative;
+    top: 50px;
+    margin: auto;
+    width: 80%;
+    text-align: center;
+    min-width: 750px;
+    margin: 0px auto 0px auto;
+}
+
+
+/* MENU */
+
+#menu {
+    z-index: 999;
+    background-color: #DDEEFF;
+    height: 35px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-width: 500px;
+    border-bottom: 1px solid;
+}
+
+#menu > ul {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding: 5px 0px 5px 0px;
+    list-style: none outside none;
+    padding-right: 1%
+}
+
+#menu > ul > li {
+    display: inline-block;
+    padding: 0px 20px 0px 20px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+
+/* SEARCH */
+
+#search-text {
+    min-width: 200px;
+    width: 80%;
+    border-radius: 7px;
+    font-size: 2em;
+    vertical-align: middle;
+    height: 30px;
+}
+
+#search-submit {
+    height: 36px;
+    font-size: 1.3em;
+    width: 100px;
+    vertical-align: middle;
+    border-radius: 7px;
+    margin-left: 10px;
+}
+
+#search-form {
+    background-color: #DDEEFF;
+    position: relative;
+    text-align: left;
+    padding: 25px 30px 25px 30px;
+    padding-left: 60px;
+    margin: 0px 25px 0px 25px;
+    border: 1px solid;
+    border-radius: 7px;
+}
+
+#search-form > form {
+    vertical-align: middle;
+}
+
+#search-select {
+    margin: 0px 0px 7px 0px;
+}
+
+
+/* BOOK LIST */
+
+.book-list {
+    clear: both;
+    font-size: 1.3em;
+    border: 1px darkcyan solid;
+    border-radius: 7px;
+    padding-bottom: 20px;
+    list-style-type: none
+}
+
+.book-list > li {
+    text-align: left;
+    margin-bottom: 5px;
+    font-size: 0.77em;
+    position: relative;
+    border-bottom: 1px solid;
+    padding-top: 20px;
+    margin-right: 30px;
+}
+
+.book-list .item {
+    padding-bottom: 5px;
+}
+
+.book-list .item .book-description-short {
+    padding-bottom: 3px;
+}
+
+.rental {
+/* margin-left: 10px; */
+/* background-color: pink; */
+}
+
+.book-list .item .book-description {
+    margin-bottom: 10px;
+}
+
+.book-list
+
+.book-detail td {
+    padding-left: 10px;
+}
+
+.book-list .expand {
+    vertical-align: top;
+    padding-top: 5px;
+    padding-right: 10px;
+}
+
+.book-list-expand > img {
+    width: 12px;
+    height: 12px;
+    cursor: pointer;
+}
+
+.list-sort {
+    text-align: right;
+    margin: 10px 5px 10px 5px;
+    float: right;
+}
+
+.list-sort > select {
+    border-radius: 5px;
+}
+
+.list-step {
+    margin: 10px 5px 10px 25px;
+    font-size: 130%;
+}
+
+.list-step > a {
+    margin-left: 5px;
+}
+
+
+/* RENTAL HISTORY */
+
+.lending-history {
+    margin-top: 10px;
+}
+
+.lending-history table {
+    border-collapse: collapse;
+}
+
+.lending-history td, .lending-history th {
+    border: 1px solid;
+    padding: 2px 7px 2px 7px;
+}
+
+.lending-history th.user {
+    width: 100px;
+}
+
+
+/* BOOK REGISTER */
+
+#register {
+    width: 500px;
+    margin: 0px auto 20px auto;
+}
+
+#register th {
+    width: 100px;
+}
+
+#register td {
+    text-align: left;
+}
+
+h3 {
+    text-align: left;
+}
+
+#register .text {
+    margin-right: 5px;
+}
+
+
+/* MISC */
+
+.tex-download {
+    margin: 5px 0px 5px 0px;
+    padding-top: 10px;
+}
+
+input {
+    font-size: 0.8em;
+}
+
+.edit-mark {
+    margin-left: 2px;
+    width: 8px;
+    height: 8px;
+    cursor: pointer;
+}
+
+.display-none {
+    display: none;
+}
