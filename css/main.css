@@ -1,3 +1,6 @@
+html {
+    overflow-y: scroll;
+}
 
 .contents {
     position: relative;
@@ -151,7 +154,7 @@
     font-size: 130%;
 }
 
-.list-step > a {
+.list-step a {
     margin-left: 5px;
 }
 

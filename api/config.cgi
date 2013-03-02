@@ -6,10 +6,10 @@ print_endline "\
 {\
   \"book\": {\
    \"publisher\" : {\
-      \"item\": [ \"ACM\", \"Springer\", \"MIT\" ] \
+      \"values\": [ \"ACM\", \"Springer\", \"MIT\" ] \
    },\
     \"kind\": {\
-      \"item\": [ \"五十嵐\", \"消耗品\", \"図書\" ] \
+      \"values\": [ \"五十嵐\", \"消耗品\", \"図書\" ] \
     }\
   }\
 }"

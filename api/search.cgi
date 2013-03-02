@@ -9,6 +9,7 @@
   (*   publisher: string, *)
   (*   isbn: string, *)
   (*   kind: string, *)
+  (*   status: string, *)
   (* }, ...] *)
 
 print_endline "Content-Type: application/json\n";;
@@ -21,6 +22,23 @@ print_endline "[\
   \"author\": [ \"John\",\"Michael\" ],\
   \"publisher\": \"ACM\",\
   \"isbn\": \"9r239r29fj\",\
-  \"kind\": \"Igarashi Lab\"
-}
-]";;
+  \"kind\": \"Igarashi Lab\"\
+},\
+{\
+  \"id\": 2,\
+  \"title\": \"Happy Programming\",\
+  \"publish_year\": 2011,\
+  \"author\": [ \"Church\" ],\
+  \"publisher\": \"Springer\",\
+  \"isbn\": \"824923-3294\",\
+  \"kind\": \"消耗品\"\
+},\
+{\
+  \"id\": 3,\
+  \"title\": \"1 Happy Programming\",\
+  \"publish_year\": 2011,\
+  \"author\": [ \"1 Church\" ],\
+  \"publisher\": \"Springer\",\
+  \"isbn\": \"1824923-3294\",\
+  \"kind\": \"消耗品\"\
+}]";;
