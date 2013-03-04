@@ -16,7 +16,7 @@ print_endline "\
      \"purchase\": \"購入済\"
    }\
   },\
-  lending: {\
+  \"lending\": {\
     \"interval_days\": 30\
   }\
  }"

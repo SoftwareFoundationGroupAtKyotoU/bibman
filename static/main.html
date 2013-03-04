@@ -10,9 +10,28 @@
     <script type="text/javascript" src="./../js/lib/jquery-1.9.1.js" charset="utf-8"></script>
     <script type="text/javascript" src="./../js/lib/handlebars.js" charset="utf-8"></script>
     <script type="text/javascript" src="./../js/lib/underscore.js" charset="utf-8"></script>
-    <script type="text/javascript" src="./../js/app.js" charset="utf-8"></script>
-    <script type="text/javascript" charset="utf-8">
-      Bibman.init('$u');
+    <script id="lending-item-template" type="text/x-handlebars-template" charset="utf-8">
+      <form class="lending-form" data-lending="lending" {{#if owner }}style="display: none"{{/if}}>
+        <input type="submit" value="貸出" />
+      </form>
+      <form class="return-form" data-lending="return" {{#unless owner_me }}style="display: none"{{/unless}}>
+        <input type="submit" value="返却" />
+      </form>
+      <form data-lending="other-lending" {{#unless owner_other }}style="display: none"{{/unless}}>
+        <input type="submit" disabled="disabled" value="貸出中" />
+      </form>
+      <form class="reserve-form" data-lending="reservation" {{#unless owner_other }}style="display: none"{{else}}{{#if reserver_me }}style="display: none"{{/if}}{{/unless}}>
+        <input type="submit" value="予約" />
+      </form>
+      <form class="cancel-reservation-form" data-lending="cancel-reservaion" {{#unless reserver_me }}style="display: none"{{/unless}}>
+        <input type="submit" value="予約キャンセル" />
+      </form>
+      <span class="due-date-block" {{#unless owner}}style="display: none"{{/unless}}>
+        返却期限日: <span class="due-date">{{ due_date }}</span>
+      </span>
+      <span class="reserver-count-block" {{#unless reserver_count}}style="display: none"{{/unless}}>
+        現在の予約人数: <span class="reserver-count">{{ reserver_count }}</span>
+      </span>
     </script>
     <script id="book-item-template" type="text/x-handlebars-template" charset="utf-8">
 <ul class="book-list">
@@ -36,45 +55,11 @@
               <span class="item-content">{{ book.author }}</span><img class="edit-mark display-none" title="編集" src="./../images/edit.jpg" data-item="author" data-value="{{ book.author }}" data-type="text" />
             </span>
           </div>
-          {{#unless ../option.deny_lending }}
-            <span class="lending">
-              <form class="lending-form" data-lending="lending" {{#if lending.owner }}style="display: none"{{/if}}>
-                <input type="submit" value="貸出" />
-              </form>
-              <form class="return-form" data-lending="return" {{#unless lending.owner_me }}style="display: none"{{/unless}}>
-                <input type="submit" value="返却" />
-              </form>
-              <form data-lending="other-lending" {{#unless lending.owner_other }}style="display: none"{{/unless}}>
-                <input type="submit" disabled="disabled" value="貸出中" />
-              </form>
-              <form class="reserve-form" data-lending="reservation" {{#unless lending.owner_other }}style="display: none"{{else}}{{#if lending.reserver_me }}style="display: none"{{/if}}{{/unless}}>
-                <input type="submit" value="予約" />
-              </form>
-              <form class="cancel-reservation-form" data-lending="cancel-reservaion" {{#unless lending.reserver_me }}style="display: none"{{/unless}}>
-                <input type="submit" value="予約キャンセル" />
-              </form>
-              <!-- {{#if lending.owner_other }} -->
-              <!--   <form class="bt-others-lending"><input type="submit" value="貸出中" /></form> -->
-              <!--   {{#if lending.reserver_me }} -->
-              <!--     <form class="bt-my-reservation"><input type="submit" value="予約キャンセル" /></form> -->
-              <!--   {{else}} -->
-              <!--     <form class="bt-my-reservation"><input type="submit" value="予約" /></form> -->
-              <!--   {{/if}} -->
-              <!-- {{else}} -->
-              <!--   {{#if lending.owner_me }} -->
-              <!--     <form class="bt-my-lending"><input type="submit" value="返却" /></form> -->
-              <!--   {{else}} -->
-              <!--     <form class="bt-my-lending"><input type="submit" value="貸出" /></form> -->
-              <!--   {{/if}} -->
-              <!-- {{/if}} -->
-              <span class="due-date-block" {{#unless lending.owner}}style="display: none"{{/unless}}>
-                返却期限日: <span class="due-date">{{ lending.due_date }}</span>
-              </span>
-              <span class="reserver-count-block" {{#unless lending.reserver_count}}style="display: none"{{/unless}}>
-                現在の予約人数: <span class="reserver-count">{{ lending.reserver_count }}</span>
-              </span>
-            </span>
-          {{/unless}}
+          <span class="lending">
+            {{#unless ../option.deny_lending}}
+            {{template "lending-item-template" context=lending}}
+            {{/unless}}
+          </span>
           <div class="book-description display-none">
             <div class="book-detail">
               <table>
@@ -125,9 +110,6 @@
               </table>
             </div>
             {{/if}}
-            <!-- <div class="tex-download"> -->
-            <!--   <a class="bt-tex" href="./tex.cgi?id={{book.id}}">TeXファイルのダウンロード</a> -->
-            <!-- </div> -->
           </div>
         </td>
       </tr>
@@ -135,6 +117,10 @@
   </li>
   {{/each}}
 </ul>
+    </script>
+    <script type="text/javascript" src="./../js/app.js" charset="utf-8"></script>
+    <script type="text/javascript" charset="utf-8">
+      Bibman.init('$u');
     </script>
   </head>
   <body style="padding-bottom: 100px">
@@ -252,55 +238,6 @@
           </select>
       </div>
       <div id="wishbook-list"></div>
-      <!-- <ul class="book-list"> -->
-      <!--   <li> -->
-      <!--     <table> -->
-      <!--       <tr> -->
-      <!--         <td class="expand"> -->
-      <!--           <img alt="詳細" title="詳細" src="./../images/fold.png" /> -->
-      <!--         </td> -->
-      <!--         <td class="item"> -->
-      <!--           <div class="book-description-short" style="font-size: 1.3em" title="タイトル"> -->
-      <!--             プログラミング入門<img class="edit-mark" title="編集" src="./../images/edit.jpg" /> -->
-      <!--           </div> -->
-      <!--           <div class="book-description-short" >  -->
-      <!--             <span title="出版年">1982<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span> -->
-      <!--             <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span> -->
-      <!--           </div> -->
-      <!--           <div style="margin-top: 10px;"> -->
-      <!--             <table> -->
-      <!--               <tr> -->
-      <!--                 <th>出版社</th> -->
-      <!--                 <td> -->
-      <!--                   Springer<img class="edit-mark" title="編集"  src="./../images/edit.jpg" /> -->
-      <!--                 </td> -->
-      <!--               </tr> -->
-      <!--               <tr> -->
-      <!--                 <th>ISBN</th> -->
-      <!--                 <td><a href="...">9102199139</a><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td> -->
-      <!--               </tr> -->
-      <!--               <tr> -->
-      <!--                 <th>状況</th> -->
-      <!--                 <td> -->
-      <!--                   <form> -->
-      <!--                     <select> -->
-      <!--                       <option>未購入</option> -->
-      <!--                       <option>注文済</option> -->
-      <!--                       <option>購入済</option> -->
-      <!--                     </select> -->
-      <!--                   </form> -->
-      <!--                 </td> -->
-      <!--               </tr> -->
-      <!--             </table> -->
-      <!--             <div class="tex-download"> -->
-      <!--               <a href=".">TeXファイルのダウンロード</a> -->
-      <!--             </div> -->
-      <!--           </div> -->
-      <!--         </td> -->
-      <!--       </tr> -->
-      <!--     </table> -->
-      <!--   </li> -->
-      <!-- </ul> -->
     </div>
   </div>
   <div id="my-page" class="contents" style="display: none">
@@ -594,67 +531,5 @@
       </li>
     </ul>
   </div>
-
-  <!-- <li id="book-item-template"> -->
-  <!--   <table> -->
-  <!--     <tr> -->
-  <!--       <td class="expand"> -->
-  <!--         <img alt="詳細" title="詳細" src="./../images/unfold.png" /> -->
-  <!--       </td> -->
-  <!--       <td class="item"> -->
-  <!--         <div class="book-description-short" style="font-size: 1.3em" title="タイトル"> -->
-  <!--           <span class="bt-title" /><img class="edit-mark" title="編集" src="./../images/edit.jpg" /> -->
-  <!--         </div> -->
-  <!--         <div class="book-description-short" >  -->
-  <!--           <span title="出版年"> -->
-  <!--             <span class="bt-publish_year" /><img class="edit-mark" title="編集" src="./../images/edit.jpg" /> -->
-  <!--           </span> -->
-  <!--           <span title="筆者"> -->
-  <!--             <span class="bt-author" /><img class="edit-mark" title="編集" src="./../images/edit.jpg" /> -->
-  <!--           </span> -->
-  <!--         </div> -->
-  <!--         <span class="lending"> -->
-  <!--           <form class="bt-others-lending" style="display: none"><input type="submit" value="貸出中" /></form> -->
-  <!--           <form class="bt-my-lending" style="display: none"><input type="submit" value="返却" /></form> -->
-  <!--           <form class="bt-others-reserve" style="display: none"><input type="submit" value="予約" /></form> -->
-  <!--           <form class="bt-my-reserve" style="display: none"><input type="submit" value="予約キャンセル" /></form> -->
-  <!--           返却期限日: <span class="bt-lending_deadline" /> -->
-  <!--         </span> -->
-  <!--         <div clas="book-description"> -->
-  <!--           <div class="book-detail"> -->
-  <!--             <table> -->
-  <!--               <tr> -->
-  <!--                 <th>出版社</th> -->
-  <!--                 <td> -->
-  <!--                   <span class="bt-publisher"/><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /> -->
-  <!--                 </td> -->
-  <!--               </tr> -->
-  <!--               <tr> -->
-  <!--                 <th>ISBN</th> -->
-  <!--                 <td><a class="bt-isbn" /><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td> -->
-  <!--               </tr> -->
-  <!--               <tr> -->
-  <!--                 <th>配置場所</th> -->
-  <!--                 <td><span class="bt-kind" /><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td> -->
-  <!--               </tr> -->
-  <!--             </table> -->
-  <!--           </div> -->
-  <!--           <div class="lending-history"> -->
-  <!--             <span>貸出履歴</span> -->
-  <!--             <table class="bt-history"> -->
-  <!--               <tr> -->
-  <!--                 <th class="user">ユーザー</th><th>開始日</th><th>返却日</th> -->
-  <!--               </tr> -->
-  <!--             </table> -->
-  <!--             <div class="tex-download"> -->
-  <!--               <a class="bt-tex">TeXファイルのダウンロード</a> -->
-  <!--             </div> -->
-  <!--           </div> -->
-  <!--         </div> -->
-  <!--       </tr> -->
-  <!--     </td> -->
-  <!--   </table> -->
-  <!-- </li> -->
-
 </body>
 </html>

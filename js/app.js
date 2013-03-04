@@ -1,5 +1,11 @@
 'use strict';
 
+Handlebars.registerHelper('template', function(name, context) {
+  var subTemplate =  Handlebars.compile($('#' + name).html());
+  return new Handlebars.SafeString(subTemplate(context.hash.context || this));
+});
+
+
 var Bibman = {};
 
 Bibman.log = (function () {
@@ -226,8 +232,20 @@ Bibman.BookList = Bibman.Class({
 
   unshift_book: function(book) {
     this.books.unshift(book);
-  }
+  },
 
+  update_lending: function(lending) {
+    this._trans_lending(lending);
+
+    var self = this;
+    this.lendings.forEach(function (pre_lending, idx) {
+      if (pre_lending.id === lending.id) {
+        self.lendings[idx] = lending;
+      }
+    });
+
+    return lending;
+  }
 });
 
 Bibman.UI = {};
@@ -344,6 +362,45 @@ Bibman.UI.edit_text = (function() {
   };
 })();
 
+Bibman.UI.set_lending_event_handler = (function() {
+  var lending_template = Handlebars.compile($('#lending-item-template').html());
+
+  return function(booklist, $lending_block) {
+
+    function set_event_handler(action, $target) {
+      $target.submit(function(e) {
+        var $item = $target.parents('.book-item');
+        var id = $item.data('book-id');
+
+        Bibman.API.lend_book({ action: action, account: Bibman.user.account(), id: id })
+          .done(function() {
+            Bibman.API.lending({ id: id }).done(function(arr) {
+              var lending = booklist.update_lending(arr[0]);
+              $lending_block.empty().html(lending_template(lending));
+              Bibman.UI.set_lending_event_handler(booklist, $lending_block);
+            });
+          });
+
+        return false;
+      });
+    }
+
+    var $lending = $lending_block.find('.lending-form');
+    var $return = $lending_block.find('.return-form');
+    var $reserve = $lending_block.find('.reserve-form');
+    var $cancel_reservation = $lending_block.find('.cancel-reservation-form');
+
+    [
+      [ 'lend', $lending ],
+      [ 'return', $return ],
+      [ 'reserve', $reserve ],
+      [ 'cancel_reservation', $cancel_reservation ]
+    ].forEach(function(arr) {
+      set_event_handler.apply(this, arr);
+    });
+  };
+})();
+
 Bibman.BookList.UI = Bibman.Class({
   _constructor: function(booklist, booklist_template, template_option) {
     this._booklist = booklist;
@@ -451,13 +508,13 @@ Bibman.BookList.UI = Bibman.Class({
       });
 
       /* lending */
-      Bibman.UI.set_lending_event_handler($item.find('.lending'));
+      Bibman.UI.set_lending_event_handler(self._booklist, $item.find('.lending'));
     });
   },
 
   form: function(offset, limit) {
     var books = this._booklist.books.slice(offset, offset + limit);
-    var $list = $('<div />').html(this._htmlify_book_list(books)).find('.book-list');
+    var $list = $('<div></div>').html(this._htmlify_book_list(books)).find('.book-list');
     this._set_event_handler($list);
     return $list;
   },
@@ -613,56 +670,6 @@ Bibman.BookList.UI.SearchDrawer = Bibman.Class({
     this._step_draw(page_idx, count_per_page);
   }
 });
-
-Bibman.UI.set_lending_event_handler =
-  function($lending_block) {
-    function set_event_handler(action, $target, $enabled, opts) {
-      $target.submit(function(e) {
-        var $item = $target.parents('.book-item');
-        var id = $item.data('book-id');
-        Bibman.API.lend_book({ action: action, account: Bibman.user.account(), id: id })
-          .done(function() {
-            Bibman.UI.hide($target);
-            Bibman.UI.show($enabled);
-          })
-          .fail(function() {
-            if (opts.fail_message) {
-              window.alert(opts.fail_message);
-            }
-          });
-        return false;
-      });
-    }
-
-    var $lending = $lending_block.find('.lending-form');
-    var $return = $lending_block.find('.return-form');
-    var $reserve = $lending_block.find('.reserve-form');
-    var $cancel_reservation = $lending_block.find('.cancel-reservation-form');
-
-    [
-      [ 'lend', $lending, $return, {
-        fail_message: '現在貸出できません．',
-        on_succeed: function() {
-          var $due_date_block = $lending_block.find('.due-date-block');
-          Bibman.UI.show($due_date_block);
-          var due_date = new Date();
-          due_date.setDate(due_date.getDate() + Bibman.config.lending.duration_days);
-          $due_date_block.find('.due-date').text(due_date.toString('yyyy-mm-dd'));
-        }
-      }],
-      [ 'return', $return, $lending, {
-        on_succeed: function() {
-          $lending_block.find('.due-date-block');
-        }
-      }],
-      [ 'reserve', $reserve, $cancel_reservation, {
-        fail_message: '現在予約できません．'
-      } ],
-      [ 'cancel_reservation', $cancel_reservation, $reserve ]
-    ].forEach(function(arr) {
-      set_event_handler.apply(this, arr);
-    });
-  };
 
 /* init function */
 Bibman.user = undefined;
@@ -868,6 +875,11 @@ Bibman.init.load_callbacks.add(function() {
       register_event_handler(e, booklist, drawer, elements);
     });
   });
+});
+
+/* my page */
+Bibman.init.load_callbacks.add(function() {
+  
 });
 
 /* swtich contents */

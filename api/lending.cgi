@@ -12,15 +12,15 @@ print_endline "Content-Type: application/json\n";;
 
 print_endline "[\
  {\
-  \"id\": 1,\
-  \"owner\": \"t-sekiym\",
-  \"reserver\": [\"someone\"],
-  \"due_date\": \"2013-03-12\"
- },\
- {\
   \"id\": 2,\
   \"owner\": \"someone\",
   \"reserver\": [\"t-sekiym\"],
+  \"due_date\": \"2013-03-12\"
+ },\
+ {\
+  \"id\": 1,\
+  \"owner\": \"t-sekiym\",
+  \"reserver\": [\"someone\"],
   \"due_date\": \"2013-03-12\"
  },\
  {\
