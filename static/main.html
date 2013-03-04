@@ -15,9 +15,9 @@
       Bibman.init('$u');
     </script>
     <script id="book-item-template" type="text/x-handlebars-template" charset="utf-8">
-<ul class="book-list" data-offset="">
+<ul class="book-list">
   {{#each items}}
-  <li data-book-id="{{ book.id }}">
+  <li class="book-item" data-book-id="{{ book.id }}">
     <table>
       <tr>
         <td class="expand">
@@ -36,26 +36,45 @@
               <span class="item-content">{{ book.author }}</span><img class="edit-mark display-none" title="編集" src="./../images/edit.jpg" data-item="author" data-value="{{ book.author }}" data-type="text" />
             </span>
           </div>
-          <span class="lending">
-            {{#if lending.owner_other }}
-              <form class="bt-others-lending"><input type="submit" value="貸出中" /></form>
-              {{#if lending.reserver_me }}
-                <form class="bt-my-reservation"><input type="submit" value="予約キャンセル" /></form>
-              {{else}}
-                <form class="bt-my-reservation"><input type="submit" value="予約" /></form>
-              {{/if}}
-            {{else}}
-              {{#if lending.owner_me }}
-                <form class="bt-my-lending"><input type="submit" value="返却" /></form>
-              {{else}}
-                <form class="bt-my-lending"><input type="submit" value="貸出" /></form>
-              {{/if}}
-            {{/if}}
-            {{#if lending.owner}}
-              返却期限日: {{ lending.due_date }}
-              現在の予約人数: {{ lending.reserver_count }}
-            {{/if}}
-          </span>
+          {{#unless ../option.deny_lending }}
+            <span class="lending">
+              <form class="lending-form" data-lending="lending" {{#if lending.owner }}style="display: none"{{/if}}>
+                <input type="submit" value="貸出" />
+              </form>
+              <form class="return-form" data-lending="return" {{#unless lending.owner_me }}style="display: none"{{/unless}}>
+                <input type="submit" value="返却" />
+              </form>
+              <form data-lending="other-lending" {{#unless lending.owner_other }}style="display: none"{{/unless}}>
+                <input type="submit" disabled="disabled" value="貸出中" />
+              </form>
+              <form class="reserve-form" data-lending="reservation" {{#unless lending.owner_other }}style="display: none"{{else}}{{#if lending.reserver_me }}style="display: none"{{/if}}{{/unless}}>
+                <input type="submit" value="予約" />
+              </form>
+              <form class="cancel-reservation-form" data-lending="cancel-reservaion" {{#unless lending.reserver_me }}style="display: none"{{/unless}}>
+                <input type="submit" value="予約キャンセル" />
+              </form>
+              <!-- {{#if lending.owner_other }} -->
+              <!--   <form class="bt-others-lending"><input type="submit" value="貸出中" /></form> -->
+              <!--   {{#if lending.reserver_me }} -->
+              <!--     <form class="bt-my-reservation"><input type="submit" value="予約キャンセル" /></form> -->
+              <!--   {{else}} -->
+              <!--     <form class="bt-my-reservation"><input type="submit" value="予約" /></form> -->
+              <!--   {{/if}} -->
+              <!-- {{else}} -->
+              <!--   {{#if lending.owner_me }} -->
+              <!--     <form class="bt-my-lending"><input type="submit" value="返却" /></form> -->
+              <!--   {{else}} -->
+              <!--     <form class="bt-my-lending"><input type="submit" value="貸出" /></form> -->
+              <!--   {{/if}} -->
+              <!-- {{/if}} -->
+              <span class="due-date-block" {{#unless lending.owner}}style="display: none"{{/unless}}>
+                返却期限日: <span class="due-date">{{ lending.due_date }}</span>
+              </span>
+              <span class="reserver-count-block" {{#unless lending.reserver_count}}style="display: none"{{/unless}}>
+                現在の予約人数: <span class="reserver-count">{{ lending.reserver_count }}</span>
+              </span>
+            </span>
+          {{/unless}}
           <div class="book-description display-none">
             <div class="book-detail">
               <table>
@@ -72,11 +91,21 @@
                   </td>
                 </tr>
                 <tr>
-                  <th>種類</th>
-                  <td>
-                    <span class="item-content">{{ book.kind }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="kind" data-value="{{ book.kind }}" data-type="select" />
-                  </td>
+                  {{#if book.kind }}
+                    <th>種類</th>
+                    <td>
+                      <span class="item-content">{{ book.kind }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="kind" data-value="{{ book.kind }}" data-type="select" />
+                    </td>
+                  {{/if}}
                 </tr>
+                {{#if book.status }}
+                  <tr>
+                    <th>状況</th>
+                    <td>
+                      <span class="item-content">{{ book.status }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="status" data-value="{{ book.status }}" data-type="select" />
+                    </td>
+                  </tr>
+                {{/if}}
               </table>
             </div>
             {{#if history }}
@@ -96,9 +125,9 @@
               </table>
             </div>
             {{/if}}
-            <div class="tex-download">
-              <a class="bt-tex" href="./tex.cgi?id={{book.id}}">TeXファイルのダウンロード</a>
-            </div>
+            <!-- <div class="tex-download"> -->
+            <!--   <a class="bt-tex" href="./tex.cgi?id={{book.id}}">TeXファイルのダウンロード</a> -->
+            <!-- </div> -->
           </div>
         </td>
       </tr>
@@ -109,6 +138,7 @@
     </script>
   </head>
   <body style="padding-bottom: 100px">
+    <a id="top-anchor"></a>
     <div id="menu">
       <ul>
         <li onclick="Bibman.switch_tab('search-contents')">検索</li>
@@ -119,7 +149,7 @@
     </div>
     <div id="search-contents" class="contents">
       <form id="search-form">
-        <input type="text" id="search-text"/>
+        <input type="text" id="search-text" />
         <input type="submit" id="search-submit" value="検索" />
       </form>
       <div id="search-result" style="margin-top: 10px">
@@ -137,7 +167,7 @@
             <option value="des-publisher">出版社降順</option>
             <option value="des-kind">種類降順</option>
           </select>
-          <select id="search-number-limit">
+          <select id="search-count-per-page">
             <option value="10" selected="selected">10件</option>
             <option value="20">20件</option>
             <option value="30">30件</option>
@@ -147,30 +177,30 @@
         </div>
       </div>
       <div id="book-search-list"></div>
-      <div class="list-step"></div>
+        <div class="list-step"></div>
     </div>
     <div id="book-register" class="contents" style="display: none">
       <h3>書籍登録</h3>
       <div id="register">
-        <form>
+        <form id="book-register-form">
           <table>
             <tr>
               <th>ISBN</th>
               <td>
-                <input type="text" class="text" />
+                <input type="text" class="text" data-item="isbn" />
                 <button>Amazonから情報を取得</button>
               </td>
             </tr>
             <tr>
               <th>タイトル</th>
               <td>
-                <input type="text" class="text" />
+                <input type="text" class="text" data-item="title" />
               </td>
             </tr>
             <tr>
               <th>筆者</th>
               <td>
-                <input type="text" class="text" />
+                <input type="text" class="text" data-item="author" />
                 <span style="font-size: 0.8em; vertical-align: bottom">
                   コンマ区切リで入力してください
                 </span>
@@ -179,83 +209,98 @@
             <tr>
               <th>出版年</th>
               <td>
-                <input type="text" class="text" />年
+                <input type="text" class="text" data-item="publish_year" />年
               </td>
             </tr>
             <tr>
               <th>出版社</th>
               <td>
-                <select id="book-register-publisher" />
+                <select id="book-register-publisher" data-item="publisher" />
+              </td>
+            </tr>
+            <tr>
+              <th>種類</th>
+              <td>
+                <select id="book-register-kind" data-item="kind" />
               </td>
             </tr>
             <tr>
               <th>状況</th>
               <td>
-                <select id="book-register-kind" />
+                <select id="book-register-status" data-item="status" />
               </td>
             </tr>
           </table>
           <input type="submit" value="登録" />
         </form>
       </div>
-      <div class="list-sort">
-        <select>
-          <option>タイトル昇順</option>
-          <option>筆者</option>
-          <option>発行年</option>
-          <option>登録日</option>
-        </select>
-      </div>
       <h3>ほしい本リスト</h3>
-      <ul class="book-list">
-        <li>
-          <table>
-            <tr>
-              <td class="expand">
-                <img alt="詳細" title="詳細" src="./../images/fold.png" />
-              </td>
-              <td class="item">
-                <div class="book-description-short" style="font-size: 1.3em" title="タイトル">
-                  プログラミング入門<img class="edit-mark" title="編集" src="./../images/edit.jpg" />
-                </div>
-                <div class="book-description-short" > 
-                  <span title="出版年">1982<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
-                  <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span>
-                </div>
-                <div style="margin-top: 10px;">
-                  <table>
-                    <tr>
-                      <th>出版社</th>
-                      <td>
-                        Springer<img class="edit-mark" title="編集"  src="./../images/edit.jpg" />
-                      </td>
-                    </tr>
-                    <tr>
-                      <th>ISBN</th>
-                      <td><a href="...">9102199139</a><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td>
-                    </tr>
-                    <tr>
-                      <th>状況</th>
-                      <td>
-                        <form>
-                          <select>
-                            <option>未購入</option>
-                            <option>注文済</option>
-                            <option>購入済</option>
-                          </select>
-                        </form>
-                      </td>
-                    </tr>
-                  </table>
-                  <div class="tex-download">
-                    <a href=".">TeXファイルのダウンロード</a>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </table>
-        </li>
-      </ul>
+      <div class="list-sort">
+        <select id="wishbook-sort">
+            <option value="asc-title" selected="selected" >タイトル昇順</option>
+            <option value="asc-publish_year">発行年昇順</option>
+            <option value="asc-author">筆者昇順</option>
+            <option value="asc-publisher">出版社昇順</option>
+            <option value="asc-kind">種類昇順</option>
+            <option value="asc-status">状況昇順</option>
+            <option value="des-title">タイトル降順</option>
+            <option value="des-publish_year">発行年降順</option>
+            <option value="des-author">筆者降順</option>
+            <option value="des-publisher">出版社降順</option>
+            <option value="des-kind">種類降順</option>
+            <option value="des-status">状況降順</option>
+          </select>
+      </div>
+      <div id="wishbook-list"></div>
+      <!-- <ul class="book-list"> -->
+      <!--   <li> -->
+      <!--     <table> -->
+      <!--       <tr> -->
+      <!--         <td class="expand"> -->
+      <!--           <img alt="詳細" title="詳細" src="./../images/fold.png" /> -->
+      <!--         </td> -->
+      <!--         <td class="item"> -->
+      <!--           <div class="book-description-short" style="font-size: 1.3em" title="タイトル"> -->
+      <!--             プログラミング入門<img class="edit-mark" title="編集" src="./../images/edit.jpg" /> -->
+      <!--           </div> -->
+      <!--           <div class="book-description-short" >  -->
+      <!--             <span title="出版年">1982<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span> -->
+      <!--             <span title="筆者">ななしのごんべえ<img class="edit-mark" title="編集" src="./../images/edit.jpg" /></span> -->
+      <!--           </div> -->
+      <!--           <div style="margin-top: 10px;"> -->
+      <!--             <table> -->
+      <!--               <tr> -->
+      <!--                 <th>出版社</th> -->
+      <!--                 <td> -->
+      <!--                   Springer<img class="edit-mark" title="編集"  src="./../images/edit.jpg" /> -->
+      <!--                 </td> -->
+      <!--               </tr> -->
+      <!--               <tr> -->
+      <!--                 <th>ISBN</th> -->
+      <!--                 <td><a href="...">9102199139</a><img class="edit-mark" title="編集"  src="./../images/edit.jpg" /></td> -->
+      <!--               </tr> -->
+      <!--               <tr> -->
+      <!--                 <th>状況</th> -->
+      <!--                 <td> -->
+      <!--                   <form> -->
+      <!--                     <select> -->
+      <!--                       <option>未購入</option> -->
+      <!--                       <option>注文済</option> -->
+      <!--                       <option>購入済</option> -->
+      <!--                     </select> -->
+      <!--                   </form> -->
+      <!--                 </td> -->
+      <!--               </tr> -->
+      <!--             </table> -->
+      <!--             <div class="tex-download"> -->
+      <!--               <a href=".">TeXファイルのダウンロード</a> -->
+      <!--             </div> -->
+      <!--           </div> -->
+      <!--         </td> -->
+      <!--       </tr> -->
+      <!--     </table> -->
+      <!--   </li> -->
+      <!-- </ul> -->
     </div>
   </div>
   <div id="my-page" class="contents" style="display: none">

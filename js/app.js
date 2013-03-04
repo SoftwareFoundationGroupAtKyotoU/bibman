@@ -9,35 +9,55 @@ Bibman.log = (function () {
   };
 })();
 
-Bibman.Class = function(members) {
+Bibman.Class = (function () {
 
-  function draw_member(key, default_mem) {
-    var mem = default_mem;
-    if (members.hasOwnProperty(key)) {
-      mem = members[key];
-      delete members[key];
+  function set_method(clss, base, name, method) {
+    var super_call = function () {
+      var s = this._super;
+      var ret = base.prototype[name].apply(this, arguments);
+      this._super = s;
+      return ret;
+    };
+
+    clss.prototype[name] = function () {
+      this._super = super_call;
+      return method.apply(this, arguments);
+    };
+  }
+
+  return function(members) {
+    var base = members._base || {};
+    var constructor = members._constructor;
+    if (!constructor && members._base) {
+      constructor = function () {
+        base.prototype._constructor.apply(this, arguments);
+      };
     }
-    return mem;
-  }
+    constructor = constructor || function () {};
 
-  var fields = {};
-  var constructor = draw_member('_constructor', function() {});
+    members._constructor = constructor;
 
-  var clss = function() {
-    _.extend(this, fields);
-    constructor.apply(this, arguments);
+    var fields = {};
+    var clss = function() {
+      _.extend(this, fields);
+      return this._constructor.apply(this, arguments);
+    };
+
+    clss.prototype = _.clone(base.prototype || {});
+
+    for (var name in members) {
+      var mem = members[name];
+      if (typeof mem === 'function') {
+        set_method(clss, base, name, mem);
+      }
+      else {
+        clss.prototype[name] = mem;
+      }
+    }
+
+    return clss;
   };
-
-  clss.prototype = {};
-
-  for (var key in members) {
-    var mem = members[key];
-    var hash = (typeof mem === 'function') ? clss.prototype : fields;
-    hash[key] = mem;
-  }
-
-  return clss;
-};
+})();
 
 function assert(b) {
   console.log(b);
@@ -60,35 +80,33 @@ assert(t.methodx() === 1);
 assert(t.methody() === 2);
 assert(t.methodz() === 3);
 
-// var SubTest = Class({
-//   _constructor: function(x, y, z) {
-//     this._super(x,y,z);
-//   },
-//   methoz: function() { return 100; }
-// });
+var SubTest = Bibman.Class({
+  _base: Test,
+  methodz: function() { return this._super() * 10; }
+});
 
-// var s = new SubTest(1,2,3);
-// assert(s.methodx() === 1);
-// assert(s.methody() === 2);
-// assert(s.methodz() === 100);
+var s = new SubTest(1,2,3);
+assert(s.methodx() === 1);
+assert(s.methody() === 2);
+assert(s.methodz() === 30);
 
+var SubSubTest = Bibman.Class({
+  _base: SubTest,
+  _constructor: function(x) {
+    this._super(x, 10, 20);
+  },
+  methodx: function() { return 2; },
+  methodz: function() { return this._super() * this._super(); },
+  methodw: function() { return this.methodz() + this.methodx(); }
+});
 
+var ss = new SubSubTest(10);
+assert(ss.methodx() === 2);
+assert(ss.methody() === 10);
+assert(ss.methodz() === 40000);
+assert(ss.methodw() === 40002);
 
-// var BookList = Class({
-//   constructor: function(user, books, lendings, histories) {
-//     this._user = user;
-//     this._books = books;
-//     this._lendings = lendings;
-//     this._histories = histories;
-//   },
-//   method1:   
-// });
-
-// Handlebars.registerHelper('join', function(array, sep, options) {
-//   return array.map(function(item) {
-//     return options.fn(item);
-//   }).join(sep);
-// });
+Bibman.config = {};
 
 Bibman.API = {};
 (function() {
@@ -131,33 +149,47 @@ Bibman.API = {};
     { name: 'history', url: 'history.cgi', type: 'GET' },
     { name: 'edit', url: 'edit.cgi', type: 'POST',
       settings: { dataType: 'text' }
+    },
+    { name: 'wishbook', url: 'wishbook.cgi', type: 'GET' },
+    // { name: 'tex_download', url: 'tex.cgi', type: 'GET' },
+    { name: 'register_book', url: 'register.cgi', type: 'POST' },
+    { name: 'lend_book', /* TODO: url:: 'lending' */ url: 'lend_book.cgi', type: 'POST',
+      settings: { dataType: 'text' }
     }
   ].forEach(register_api);
 })();
 
+/* Classes for book list */
 Bibman.BookList = Bibman.Class({
   _constructor: function(user, books_info) {
 
+    this._user = user;
     this.books = books_info.books;
-    this.lendings = books_info.lendings;
-    this.histories = books_info.histories;
+    this.lendings = books_info.lendings || [];
+    this.histories = books_info.histories || [];
 
-    /* book */
-    this.books.forEach(function (book) {
-      book.author = book.author.join(', ');
+    this.books.forEach(_.bind(this._trans_book, this));
+    this.lendings.forEach(_.bind(this._trans_lending, this));
+  },
+
+  _trans_book: function(book) {
+    book.author = book.author.join(', ');
+  },
+
+  _trans_lending: function(lending) {
+    if (lending.owner === this._user.account()) {
+      lending.owner_me = true;
+    }
+    else if (lending.owner) {
+      lending.owner_other = true;
+    }
+
+    var self = this;
+    lending.reserver_me = _.some(lending.reserver, function (account)  {
+      return self._user.account() === account;
     });
 
-    /* lendings */
-    this.lendings.forEach(function (lending) {
-      if (lending.owner === user.account) {
-        lending.owner_me = true;
-      }
-      else if (lending.owner) {
-        lending.owner_other = true;
-      }
-
-      lending.reserver_count = lending.reserver.length;
-    });
+    lending.reserver_count = lending.reserver.length;
   },
 
   count: function() {
@@ -175,12 +207,44 @@ Bibman.BookList = Bibman.Class({
     this.books.sort(
       function(x, y) { return i * compare(x[item], y[item]);}
     );
+  },
+
+  _remove: function(list, id) {
+    for (var i = 0; i < list.length; ++i) {
+      if (list[i].id === id) {
+        list.splice(i, 1);
+        break;
+      }
+    }
+  },
+
+  remove: function(id) {
+    this._remove(this.books, id);
+    this._remove(this.lendings, id);
+    this._remove(this.histories, id);
+  },
+
+  unshift_book: function(book) {
+    this.books.unshift(book);
   }
+
 });
 
-var class_display_none = 'display-none';
+Bibman.UI = {};
 
-var edit_text = (function() {
+Bibman.UI.hide = function () {
+  Array.prototype.slice.apply(arguments).forEach(function(elem) {
+    $(elem).css('display', 'none');
+  });
+};
+
+Bibman.UI.show = function () {
+  Array.prototype.slice.apply(arguments).forEach(function(elem) {
+    $(elem).css('display', '');
+  });
+};
+
+Bibman.UI.edit_text = (function() {
 
   var edit_text_template = Handlebars.compile(
 '<form style="display: inline">\
@@ -242,7 +306,7 @@ var edit_text = (function() {
     var DOM_edit_form = $edit_form.get(0);
 
     DOM_block.replaceChild(DOM_edit_form, DOM_content);
-    $edit_mark.css('display', 'none');
+    Bibman.UI.hide($edit_mark);
 
     var $dfd = $.Deferred();
 
@@ -259,7 +323,7 @@ var edit_text = (function() {
       })
       .always(function () {
         DOM_block.replaceChild(DOM_content, DOM_edit_form);
-        $edit_mark.css('display', '');
+        Bibman.UI.show($edit_mark);
       });
 
     return $dfd.promise();
@@ -280,17 +344,16 @@ var edit_text = (function() {
   };
 })();
 
-Bibman.config = {};
-
-Bibman.UI = {};
-
-Bibman.UI.BookList = Bibman.Class({
-  _constructor: function(booklist, booklist_template) {
+Bibman.BookList.UI = Bibman.Class({
+  _constructor: function(booklist, booklist_template, template_option) {
     this._booklist = booklist;
     if (this._booklist.count() === 0) return null;
 
     this._booklist_template = booklist_template;
+    this._template_option = template_option || {};
+    this._edit_complete_callbacks = $.Callbacks();
     this._edit_fail_callbacks = $.Callbacks();
+    this._edit_success_callbacks = $.Callbacks();
 
     var self = this;
 
@@ -317,13 +380,56 @@ Bibman.UI.BookList = Bibman.Class({
       };
     });
 
-    return this._booklist_template({ items: items });
+    return this._booklist_template({
+      items: items,
+      option: this._template_option
+    });
+  },
+
+  _edit_event_handler: function(e) {
+    var self = this;
+    var $target = $(e.target);
+    var $item = $(e.delegateTarget);
+
+    Bibman.UI.edit_text($target, {
+      type: $target.data('type'),
+      values: (Bibman.config.book[$target.data('item')] || {}).values
+    }).done(function(val, prevent) {
+      var p = false;
+      self._edit_complete_callbacks.fire({
+        target: e.target,
+        value: val,
+        prevent: function() { p = true; }
+      });
+
+      if (p) prevent();
+      else {
+        Bibman.API.edit({
+          target: 'book',
+          id: $item.data('book-id'),
+          item: $target.data('item'),
+          value: val
+        }).done(function() {
+          self._edit_success_callbacks.fire({
+            target: e.target,
+            value: val
+          });
+        }).fail(function() {
+          prevent();
+          self._edit_fail_callbacks.fire({
+            target: e.target,
+            value: val
+          });
+        });
+      }
+    });
   },
 
   _set_event_handler: function($list) {
     var self = this;
 
     $list.children().each(function (idx) {
+      var class_display_none = 'display-none';
       var $item = $(this);
 
       /* expansion */
@@ -339,22 +445,13 @@ Bibman.UI.BookList = Bibman.Class({
       /* edit */
       $item.click(function(e) {
         var $target = $(e.target);
-        if (!$target.hasClass('edit-mark')) return;
-
-        edit_text($target, {
-          type: $target.data('type'),
-          values: (Bibman.config.book[$target.data('item')] || {}).values
-        }).done(function(val, prevent) {
-          Bibman.API.edit({
-            target: 'book',
-            item: $target.data('item'),
-            value: val
-          }).fail(function() {
-            prevent();
-            self._edit_fail_callbacks.fire();
-          });
-        });
+        if ($target.hasClass('edit-mark')) {
+          self._edit_event_handler(e);
+        }
       });
+
+      /* lending */
+      Bibman.UI.set_lending_event_handler($item.find('.lending'));
     });
   },
 
@@ -365,70 +462,75 @@ Bibman.UI.BookList = Bibman.Class({
     return $list;
   },
 
+  on_complete_edit: function(callback) {
+    this._edit_complete_callbacks.add(callback);
+  },
+
+  on_succeed_in_edit: function(callback) {
+    this._edit_success_callbacks.add(callback);
+  },
+
   on_fail_edit: function(callback) {
     this._edit_fail_callbacks.add(callback);
   }
 });
 
-Bibman.UI.ListStep = Bibman.Class({
-  _constructor: function(count, limit) {
+/* UI class for next/previous links, i.e., < 1 2 3 ... n > */
+Bibman.ListStepUI = Bibman.Class({
+  _constructor: function(count, hash) {
+    this._count = count;
+    this._hash_link = hash;
     this._callbacks = $.Callbacks();
+  },
 
+  _set_event_handler: function($a, page_idx) {
     var self = this;
-    this._links = _.range(parseInt(count / limit, 10) + 1).map(
+    $a.click(function() {
+      if ($a.attr('href')) {
+        self._callbacks.fire({ target: $a.get(0), value: page_idx});
+      }
+    });
+  },
+
+  _new_links: function(count_per_page) {
+    var self = this;
+    return _.range(parseInt(this._count / count_per_page, 10) + 1).map(
       function (i) {
         var $a = $('<a>'+ (i + 1) +'</a>');
         self._set_event_handler($a, i);
         return $a;
       });
-
-    this._$prefix = $('<a>&lt;</a>');
-    this._$suffix = $('<a>&gt;</a>');
-  },
-
-  _set_event_handler: function($a, page_idx) {
-    var self = this;
-    $a.click(function(e) {
-      e.preventDefault();
-      if ($a.attr('href')) {
-        self._callbacks.fire(page_idx);
-      }
-      return false;
-    });
   },
 
   _set_attribute: function($a, page_idx, curr_page_idx) {
     if (page_idx === curr_page_idx) {
-        $a.removeAttr('href');
-      }
-      else {
-        $a.attr('href', '#');
-      }
+      $a.removeAttr('href');
+    }
+    else {
+      $a.attr('href', '#' + this._hash_link);
+    }
   },
 
-  _last_index: function() {
-    return this._links.length - 1;
-  },
-
-  form: function(page_idx) {
+  form: function(page_idx, count_per_page) {
+    var links = this._new_links(count_per_page);
     var self = this;
-    this._links.forEach(function ($a, idx) {
+    links.forEach(function ($a, idx) {
       self._set_attribute($a, idx, page_idx);
     });
 
-    var $prefix = this._$prefix.clone();
+    var $prefix = $('<a>&lt;</a>');
     var prefix_idx = (page_idx === 0) ? 0 : page_idx - 1;
     this._set_event_handler($prefix, prefix_idx);
     this._set_attribute($prefix, prefix_idx, page_idx);
 
-    var $suffix = this._$suffix.clone();
-    var suffix_idx = (page_idx === this._last_index()) ?
-      this._last_index() : page_idx + 1;
+    var $suffix = $('<a>&gt;</a>');
+    var last_idx = links.length - 1;
+    var suffix_idx = (page_idx === last_idx) ? last_idx : page_idx + 1;
     this._set_event_handler($suffix, suffix_idx);
     this._set_attribute($suffix, suffix_idx, page_idx);
 
     var $block = $('<span />');
-    $block.append($prefix, this._links.concat([$suffix]));
+    $block.append($prefix, links.concat([$suffix]));
 
     return $block;
   },
@@ -438,85 +540,136 @@ Bibman.UI.ListStep = Bibman.Class({
   }
 });
 
-Bibman.user = undefined;
-
-/* FIXME(TODO): this class is awful... I should separate controller from view */
-Bibman.BookSearchDrawer = Bibman.Class({
-  _constructor: function(user, result) {
-    this._booklist = new Bibman.BookList(user, result);
-
-    this._booklistUI = new Bibman.UI.BookList(
-      this._booklist,
-      Handlebars.compile($('#book-item-template').html())
+/* Abstract class */
+Bibman.BookList.UI.Drawer = Bibman.Class({
+  _constructor: function(booklist, template_option) {
+    this._booklistUI = new Bibman.BookList.UI(
+      booklist,
+      Handlebars.compile($('#book-item-template').html()),
+      template_option
     );
     this._booklistUI.on_fail_edit(function() {
       window.alert('入力に誤りがあります．');
     });
-
-    this._page_idx = 0;
-    this._limit = this._current_limit();
-    this._new_stepUI();
-
-    $('#search-sort').change(_.bind(this._change_order_event, this));
-    $('#search-number-limit').change(_.bind(this._change_limit_event, this));
   },
 
-  _new_stepUI: function() {
-    this._stepUI = new Bibman.UI.ListStep(
-      this._booklist.count(),
-      this._limit
-    );
-    this._stepUI.on_change_page(_.bind(this._change_page_index_event, this));
+  booklistUI: function() {
+    return  this._booklistUI;
   },
 
-  _current_limit: function() {
-    return Number($('#search-number-limit').val());
+  draw: undefined
+});
+
+Bibman.BookList.UI.SortDrawer = Bibman.Class({
+  _base: Bibman.BookList.UI.Drawer,
+  _constructor: function(booklist, template_option, elements) {
+    this._super(booklist, template_option);
+
+    this._booklist = booklist;
+    this._$list = elements.$list;
+    this._$sort = elements.$sort;
   },
 
-  _change_order_event: function() {
-    this.book_sort();
-    this._page_idx = 0;
-    this.draw_list();
+  draw: function(offset, limit) {
+    var $list = this._booklistUI.form(offset, limit);
+    this._$list.empty().append($list);
   },
 
-  _change_limit_event: function() {
-    this._limit = this._current_limit();
-    this._page_idx = 0;
-
-    this._new_stepUI();
-
-    this.draw_list();
-  },
-
-  _change_page_index_event: function(idx) {
-    this._page_idx = idx;
-    this.draw_list();
-  },
-
-  book_sort: function() {
-    var str = $('#search-sort').val();
+  _sort: function() {
+    var str = this._$sort.val();
     var regexp = /^([^-]+)-(.+)$/;
     var match = regexp.exec(str);
     var des = (match[1] === 'des');
     var item =  match[2];
-
     this._booklist.sort(item, des);
   },
 
-  draw_list: function() {
-    var $list = this._booklistUI.form(this._page_idx * this._limit, this._limit);
-    $('#book-search-list').empty().append($list);
-
-    var $step = this._stepUI.form(this._page_idx);
-    $('#search-contents .list-step').each(function () {
-      $(this).empty().append($step.clone(true));
-    });
+  list: function() {
+    this._sort();
+    this.draw(0, this._booklist.count());
   }
 });
 
+Bibman.BookList.UI.SearchDrawer = Bibman.Class({
+  _base: Bibman.BookList.UI.SortDrawer,
+  _constructor: function(booklist, stepUI, elements) {
+    this._super(booklist, {}, elements);
+
+    this._step_draw = function(page_idx, count_per_page) {
+      var $step = stepUI.form(page_idx, count_per_page);
+      elements.$step.each(function () {
+        $(this).empty().append($step.clone(true));
+      });
+    };
+
+    this._count_per_page = function () {
+      return elements.$count_per_page.val();
+    };
+  },
+
+  draw: function(page_idx) {
+    var count_per_page = this._count_per_page();
+    this._super(page_idx * count_per_page, count_per_page);
+    this._step_draw(page_idx, count_per_page);
+  }
+});
+
+Bibman.UI.set_lending_event_handler =
+  function($lending_block) {
+    function set_event_handler(action, $target, $enabled, opts) {
+      $target.submit(function(e) {
+        var $item = $target.parents('.book-item');
+        var id = $item.data('book-id');
+        Bibman.API.lend_book({ action: action, account: Bibman.user.account(), id: id })
+          .done(function() {
+            Bibman.UI.hide($target);
+            Bibman.UI.show($enabled);
+          })
+          .fail(function() {
+            if (opts.fail_message) {
+              window.alert(opts.fail_message);
+            }
+          });
+        return false;
+      });
+    }
+
+    var $lending = $lending_block.find('.lending-form');
+    var $return = $lending_block.find('.return-form');
+    var $reserve = $lending_block.find('.reserve-form');
+    var $cancel_reservation = $lending_block.find('.cancel-reservation-form');
+
+    [
+      [ 'lend', $lending, $return, {
+        fail_message: '現在貸出できません．',
+        on_succeed: function() {
+          var $due_date_block = $lending_block.find('.due-date-block');
+          Bibman.UI.show($due_date_block);
+          var due_date = new Date();
+          due_date.setDate(due_date.getDate() + Bibman.config.lending.duration_days);
+          $due_date_block.find('.due-date').text(due_date.toString('yyyy-mm-dd'));
+        }
+      }],
+      [ 'return', $return, $lending, {
+        on_succeed: function() {
+          $lending_block.find('.due-date-block');
+        }
+      }],
+      [ 'reserve', $reserve, $cancel_reservation, {
+        fail_message: '現在予約できません．'
+      } ],
+      [ 'cancel_reservation', $cancel_reservation, $reserve ]
+    ].forEach(function(arr) {
+      set_event_handler.apply(this, arr);
+    });
+  };
+
+/* init function */
+Bibman.user = undefined;
+
 Bibman.init = (function() {
   var init = function(account) {
-    Bibman.user = { account: account };
+    Bibman.user = { account: function() { return account; } };
 
     var $dfd = $.Deferred();
     $(document).ready($dfd.resolve);
@@ -532,12 +685,6 @@ Bibman.init = (function() {
 
   return init;
 })();
-
-/* swtich contents */
-Bibman.switch_tab = function(id) {
-  $('.contents').css('display', 'none');
-  $('#' + id).css('display', '');
-};
 
 /* search */
 Bibman.init.load_callbacks.add(function () {
@@ -560,23 +707,48 @@ Bibman.init.load_callbacks.add(function () {
       });
   }
 
-  /* search */
-  $('#search-form').submit(function (e) {
-    e.preventDefault();
+  function on_search() {
+    var query = $('#search-text').val();
+    if (query === '') return;
 
-    var keyword = $('#search-text').val();
-    if (keyword === '') return;
-
-    search_book({ keyword: keyword }, function(result) {
-      if (result.books.length === 0) {
+    search_book({ query: query }, function(result) {
+      var booklist = new Bibman.BookList(Bibman.user, result);
+      if (booklist.count() === 0) {
         window.alert('キーワードにヒットする本は見つかりませんでした．');
         return;
       }
 
-      var drawer = new Bibman.BookSearchDrawer(Bibman.user, result);
-      drawer.book_sort();
-      drawer.draw_list();
+      var stepUI = new Bibman.ListStepUI(booklist.count(), 'top-anchor');
+      var $sort = $('#search-sort');
+      var $count_per_page = $('#search-count-per-page');
+
+      var drawer = new Bibman.BookList.UI.SearchDrawer(
+        booklist,
+        stepUI,
+        {
+          $list: $('#book-search-list'),
+          $sort: $sort,
+          $step: $('#search-contents .list-step'),
+          $count_per_page: $count_per_page
+        }
+      );
+
+      stepUI.on_change_page(function(e) { drawer.draw(e.value); });
+
+      $sort.unbind('change');
+      $sort.change(function() { drawer.list(); });
+
+      $count_per_page.unbind('change');
+      $count_per_page.change(function() { drawer.draw(0); });
+
+      drawer.list();
     });
+  }
+
+  /* search */
+  $('#search-form').submit(function (e) {
+    on_search();
+    return false;
   });
 });
 
@@ -592,18 +764,116 @@ Bibman.init.load_callbacks.add(function() {
       });
   }
 
-  add_options(
-    $('#book-register-publisher'),
-    Bibman.config.book.publisher.values
-  );
-  add_options(
-    $('#book-register-kind'),
-    Bibman.config.book.kind.values
-  );
+  ['publisher', 'kind', 'status'].forEach(function (item) {
+    add_options($('#book-register-' + item), Bibman.config.book[item].values);
+  });
 
-  /* wishlist */
+  function set_purchase_event_handler(booklist, drawer, elements) {
+    var purchase = function(target, val) {
+      return $(target).data('item') === 'status' &&
+        val === Bibman.config.book.status.purchase;
+    };
+    var booklistUI = drawer.booklistUI();
 
+    booklistUI.on_complete_edit(function(e) {
+      if (purchase(e.target, e.value) &&
+          !window.confirm('購入が確定した本はほしい本リストから削除されます．よろしいですか？')) {
+        e.prevent();
+      }
+    });
 
-  /* book register */
-  
+    booklistUI.on_succeed_in_edit(function(e) {
+      if (!purchase(e.target, e.value)) return;
+
+      var id = $(e.target).parents('.book-item').data('book-id');
+
+      /* TODO: Download TeX file */
+
+      booklist.remove(id);
+      if (booklist.count() === 0) {
+        elements.hide();
+      }
+      else {
+        drawer.list();
+      }
+    });
+  }
+
+  function register_event_handler(e, booklist, drawer, elements) {
+    var $register_form = $(e.target);
+
+    var empty = false;
+    $register_form.find('input').each(function () {
+      empty = empty || $(this).val() === '';
+    });
+    if (empty) {
+      window.alert('未入力の項目があります．');
+      return;
+    }
+
+    var data = {};
+    $register_form.find('input,select').each(function() {
+      var item = $(this).data('item');
+      if (item) data[item] = $(this).val();
+    });
+
+    Bibman.API.register_book(data)
+      .done(function(book) {
+        if (book.status === Bibman.config.book.status.purchase) {
+          /* TODO: TeX download */
+          console.log('TeX Downloading ...');
+        }
+        else {
+          booklist.unshift_book(book);
+          drawer.draw(0, booklist.count());
+        }
+
+        elements.show();
+      })
+      .fail(function() {
+        window.alert('入力に誤りがあります．');
+      });
+  }
+
+  /* wish-booklist */
+  Bibman.API.wishbook().done(function(result) {
+    var booklist = new Bibman.BookList(Bibman.user, { books: result });
+    if (booklist.count() === 0) {
+      return;
+    }
+
+    var $sort = $('#wishbook-sort');
+    var $list = $('#wishbook-list');
+
+    var drawer = new Bibman.BookList.UI.SortDrawer(
+      booklist,
+      { deny_lending: true},
+      { $list: $list, $sort: $sort }
+    );
+
+    $sort.change(function() { drawer.list(); });
+
+    var elements = {
+      show: function() { Bibman.UI.show($list, $sort); },
+      hide: function() { Bibman.UI.hide($list, $sort); }
+    };
+
+    elements.show();
+    drawer.list();
+
+    set_purchase_event_handler(booklist, drawer, elements);
+
+    $('#book-register-form').submit(function (e) {
+      e.preventDefault();
+      register_event_handler(e, booklist, drawer, elements);
+    });
+  });
 });
+
+/* swtich contents */
+Bibman.switch_tab = function(id) {
+  Bibman.UI.hide($('.contents'));
+  Bibman.UI.show($('#' + id));
+  window.location.hash = 'top-anchor';
+  window.location.hash = '';
+};

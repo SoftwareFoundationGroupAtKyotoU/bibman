@@ -112,9 +112,8 @@ html {
     padding-bottom: 3px;
 }
 
-.rental {
-/* margin-left: 10px; */
-/* background-color: pink; */
+.book-list .item .lending form {
+    display: inline-block
 }
 
 .book-list .item .book-description {
