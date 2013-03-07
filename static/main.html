@@ -79,7 +79,13 @@
                   {{#if book.kind }}
                     <th>種類</th>
                     <td>
-                      <span class="item-content">{{ book.kind }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="kind" data-value="{{ book.kind }}" data-type="select" />
+                      <span>
+                        <span class="item-content">{{ book.kind }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="kind" data-value="{{ book.kind }}" data-type="select" />
+                      </span>
+                      <span>
+                        <span class="label">ラベル</span>
+                        <span class="item-content">{{#if book.label }}{{book.label}}{{/if}}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="label" data-value="{{ book.label }}" data-type="text" />
+                      </span>
                     </td>
                   {{/if}}
                 </tr>
@@ -173,21 +179,22 @@
             <tr>
               <th>ISBN</th>
               <td>
-                <input type="text" class="text" data-item="isbn" />
-                <button>Amazonから情報を取得</button>
+                <input id="book-register-isbn" type="text" class="text" data-item="isbn" style="width: 147px" />
+                <button id="book-register-search" type="button" style="width: 225px">Google Books から情報を取得</button>
+                </form>
               </td>
             </tr>
             <tr>
               <th>タイトル</th>
               <td>
-                <input type="text" class="text" data-item="title" />
+                <input id="book-register-title" type="text" class="text" data-item="title" style="width: 383px" />
               </td>
             </tr>
             <tr>
               <th>筆者</th>
               <td>
-                <input type="text" class="text" data-item="author" />
-                <span style="font-size: 0.8em; vertical-align: bottom">
+                <input id="book-register-author" type="text" class="text" data-item="author" style="width: 383px" />
+                <span class="note">
                   コンマ区切リで入力してください
                 </span>
               </td>
@@ -195,25 +202,28 @@
             <tr>
               <th>出版年</th>
               <td>
-                <input type="text" class="text" data-item="publish_year" />年
+                <input id="book-register-publish-year" type="date" class="text" data-item="publish_year" style="width:147px" />年
               </td>
             </tr>
             <tr>
               <th>出版社</th>
               <td>
-                <select id="book-register-publisher" data-item="publisher" />
+                <select id="book-register-publisher" data-item="publisher" style="width: 150px"></select>
               </td>
             </tr>
             <tr>
               <th>種類</th>
               <td>
-                <select id="book-register-kind" data-item="kind" />
+                <select id="book-register-kind" data-item="kind" style="width: 150px"></select>
+                <span class="label">ラベル</span>
+                <input type="text" class="text" data-item="label" style="width: 148px" />
+                <span class="note">未記入可</span>
               </td>
             </tr>
             <tr>
               <th>状況</th>
               <td>
-                <select id="book-register-status" data-item="status" />
+                <select id="book-register-status" data-item="status" style="width: 150px"></select>
               </td>
             </tr>
           </table>

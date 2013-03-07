@@ -6,7 +6,7 @@ print_endline "\
 {\
   \"book\": {\
    \"publisher\" : {\
-     \"values\": [ \"ACM\", \"Springer\", \"MIT\" ] \
+     \"values\": [ \"ACM\", \"Springer\", \"The MIT Press\" ] \
    },\
    \"kind\": {\
      \"values\": [  \"未定\", \"五十嵐\", \"消耗品\", \"図書\" ] \

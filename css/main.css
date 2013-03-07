@@ -181,11 +181,12 @@ html {
 /* BOOK REGISTER */
 
 #register {
-    width: 500px;
+    width: 700px;
     margin: 0px auto 20px auto;
 }
 
 #register th {
+    text-align: left;
     width: 100px;
 }
 
@@ -199,6 +200,11 @@ h3 {
 
 #register .text {
     margin-right: 5px;
+}
+
+#register .note {
+    font-size: 0.8em;
+    vertical-align: bottom;
 }
 
 
@@ -222,4 +228,10 @@ input {
 
 .display-none {
     display: none;
+}
+
+.label {
+    font-weight: bold;
+    margin-left: 20px;
+    margin-right: 5px;
 }

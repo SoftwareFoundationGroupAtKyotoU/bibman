@@ -171,18 +171,16 @@ Bibman.API = {};
   var api = Bibman.API.lend_book;
 
   Bibman.API.lend_book = function (data) {
-    var $dfd = $.Deferred();
-    api.apply(this, arguments).done(function() {
-      var arr = Array.prototype.slice(arguments);
-      Bibman.API.lend_book.success_callbacks.apply(Bibman.API.lend_book, arr);
-      arr.push(data);
-      $dfd.resolve.apply($dfd, arr);
-    }).fail(function() {
-      $dfd.reject.apply($dfd, arguments);
+    return api.apply(this, arguments).done(function() {
+      Bibman.API.lending({ id: data.id }).done(function(arr) {
+        Bibman.API.lend_book.lending_callbacks.fire(
+          data.id, arr[0]
+        );
+      });
     });
   };
 
-  Bibman.LendBook.success_callbacks = $.Callbacks();
+  Bibman.API.lend_book.lending_callbacks = $.Callbacks();
 })();
 
 
@@ -384,23 +382,17 @@ Bibman.UI.edit_text = (function() {
 })();
 
 Bibman.UI.set_lending_event_handler = (function() {
-  var lending_template = Handlebars.compile($('#lending-item-template').html());
 
   return function(booklist, $lending_block) {
 
+    var id = $lending_block.parents('.book-item').data('book-id');
     function set_event_handler(action, $target) {
-      $target.submit(function(e) {
-        var $item = $target.parents('.book-item');
-        var id = $item.data('book-id');
-
-        Bibman.API.lend_book({ action: action, account: Bibman.user.account(), id: id })
-          .done(function() {
-            Bibman.API.lending({ id: id }).done(function(arr) {
-              var lending = booklist.update_lending(arr[0]);
-              $lending_block.empty().html(lending_template(lending));
-              Bibman.UI.set_lending_event_handler(booklist, $lending_block);
-            });
-          });
+      $target.submit(function() {
+        Bibman.API.lend_book({
+          action: action,
+          account: Bibman.user.account(),
+          id: id
+        });
 
         return false;
       });
@@ -505,6 +497,7 @@ Bibman.BookList.UI = Bibman.Class({
 
   _set_event_handler: function($list) {
     var self = this;
+    var lending_template = Handlebars.compile($('#lending-item-template').html());
 
     $list.children().each(function (idx) {
       var class_display_none = 'display-none';
@@ -529,7 +522,16 @@ Bibman.BookList.UI = Bibman.Class({
       });
 
       /* lending */
-      Bibman.UI.set_lending_event_handler(self._booklist, $item.find('.lending'));
+      var book_id = $item.parents('.book-item').data('book-id');
+      var $lending_block = $item.find('.lending');
+      Bibman.UI.set_lending_event_handler(self._booklist, $lending_block);
+      Bibman.API.lend_book.lending_callbacks.add(function(target_id, lending) {
+        if (target_id !== book_id) return;
+
+        lending = self._booklist.update_lending(lending);
+        $lending_block.empty().html(lending_template(lending));
+        Bibman.UI.set_lending_event_handler(self._booklist, $lending_block);
+      });
     });
   },
 
@@ -811,37 +813,7 @@ Bibman.init.load_callbacks.add(function() {
     add_options($('#book-register-' + item), Bibman.config.book[item].values);
   });
 
-  function set_purchase_event_handler(booklist, drawer, elements) {
-    var purchase = function(target, val) {
-      return $(target).data('item') === 'status' &&
-        val === Bibman.config.book.status.purchase;
-    };
-    var booklistUI = drawer.booklistUI();
-
-    booklistUI.on_complete_edit(function(e) {
-      if (purchase(e.target, e.value) &&
-          !window.confirm('購入が確定した本はほしい本リストから削除されます．よろしいですか？')) {
-        e.prevent();
-      }
-    });
-
-    booklistUI.on_succeed_in_edit(function(e) {
-      if (!purchase(e.target, e.value)) return;
-
-      var id = $(e.target).parents('.book-item').data('book-id');
-
-      /* TODO: Download TeX file */
-
-      booklist.remove(id);
-      if (booklist.count() === 0) {
-        elements.hide();
-      }
-      else {
-        drawer.list();
-      }
-    });
-  }
-
+  /* book register */
   function register_event_handler(e, booklist, drawer, elements) {
     var $register_form = $(e.target);
 
@@ -879,6 +851,37 @@ Bibman.init.load_callbacks.add(function() {
   }
 
   /* wish-booklist */
+  function set_purchase_event_handler(booklist, drawer, elements) {
+    var purchase = function(target, val) {
+      return $(target).data('item') === 'status' &&
+        val === Bibman.config.book.status.purchase;
+    };
+    var booklistUI = drawer.booklistUI();
+
+    booklistUI.on_complete_edit(function(e) {
+      if (purchase(e.target, e.value) &&
+          !window.confirm('購入が確定した本はほしい本リストから削除されます．よろしいですか？')) {
+        e.prevent();
+      }
+    });
+
+    booklistUI.on_succeed_in_edit(function(e) {
+      if (!purchase(e.target, e.value)) return;
+
+      var id = $(e.target).parents('.book-item').data('book-id');
+
+      /* TODO: Download TeX file */
+
+      booklist.remove(id);
+      if (booklist.count() === 0) {
+        elements.hide();
+      }
+      else {
+        drawer.list();
+      }
+    });
+  }
+
   Bibman.API.wishbook().done(function(result) {
     var booklist = new Bibman.BookList(Bibman.user, { books: result });
     if (booklist.count() === 0) {
@@ -907,8 +910,37 @@ Bibman.init.load_callbacks.add(function() {
     set_purchase_event_handler(booklist, drawer, elements);
 
     $('#book-register-form').submit(function (e) {
-      e.preventDefault();
       register_event_handler(e, booklist, drawer, elements);
+      return false;
+    });
+  });
+
+  /* Book Search by external API */
+  function book_info(isbn, callback) {
+    $.ajax({
+      url: 'https://www.googleapis.com/books/v1/volumes',
+      data: { q: 'isbn:' + isbn },
+      type: 'GET',
+      dataType: 'jsonp',
+      success: callback
+    });
+  }
+
+  $('#book-register-search').click(function(e) {
+    var isbn = $('#book-register-isbn').val();
+    if (isbn === '') return;
+
+    book_info(isbn, function(json) {
+      if (json.totalItems !== 1) {
+        window.alert('対応する書籍が見つかりませんでした．');
+        return;
+      }
+
+      var volume_info = json.items[0].volumeInfo;
+      $('#book-register-title').val(volume_info.title);
+      $('#book-register-author').val(volume_info.authors.join(', '));
+      $('#book-register-publisher').val(volume_info.publisher);
+      $('#book-register-publish-year').val(volume_info.publishedDate);
     });
   });
 });
@@ -916,26 +948,31 @@ Bibman.init.load_callbacks.add(function() {
 /* my page */
 Bibman.init.load_callbacks.add(function() {
 
-  function list_books(action, $list_block) {
-    Bibman.API.my_book({ action: action, account: Bibman.user.account() })
-      .done(function(books) {
-        Bibman.collect_lendings_and_histories(books, function(result) {
-          var booklist = new Bibman.BookList(Bibman.user, result);
-          if (booklist.count() === 0) return;
+  function list_books(books, $list_block) {
+    Bibman.collect_lendings_and_histories(books, function(result) {
+      var booklist = new Bibman.BookList(Bibman.user, result);
+      if (booklist.count() === 0) return;
 
-          var drawer = new Bibman.BookList.UI.AllDrawer(
-            booklist,
-            $('#book-item-template'),
-            $list_block
-          );
-          drawer.draw();
-        });
+      var drawer = new Bibman.BookList.UI.AllDrawer(
+        booklist,
+        $('#book-item-template'),
+        $list_block
+      );
+      drawer.draw();
+    });
+  }
+
+  function list_all() {
+    Bibman.API.my_book({ account: Bibman.user.account() })
+      .done(function(mydata) {
+        list_books(mydata.lending, $('#my-lending'));
+        list_books(mydata.reservation, $('#my-reservation'));
+        list_books(mydata.history, $('#my-history'));
       });
   }
 
-  list_books('lending', $('#my-lending'));
-  list_books('reservation', $('#my-reservation'));
-  list_books('history', $('#my-history'));
+  Bibman.API.lend_book.lending_callbacks.add(list_all);
+  list_all();
 });
 
 /* swtich contents */

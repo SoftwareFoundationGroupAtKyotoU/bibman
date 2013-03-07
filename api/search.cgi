@@ -22,7 +22,8 @@ print_endline "[\
   \"author\": [ \"John\",\"Michael\" ],\
   \"publisher\": \"ACM\",\
   \"isbn\": \"9r239r29fj\",\
-  \"kind\": \"Igarashi Lab\"\
+  \"kind\": \"Igarashi Lab\",\
+  \"label\": \"S201\"
 },\
 {\
   \"id\": 2,\
@@ -31,7 +32,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": \"S201\"
 },\
 {\
   \"id\": 3,\
@@ -40,7 +42,8 @@ print_endline "[\
   \"author\": [ \"1 Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"1824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": \"S201\"
 },\
 {\
   \"id\": 4,\
@@ -49,8 +52,9 @@ print_endline "[\
   \"author\": [ \"2 Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"2824923-3294\",\
-  \"kind\": \"消耗品\"\
-},\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
+ },\
 {\
   \"id\": 5,\
   \"title\": \"Happy Programming\",\
@@ -58,7 +62,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 6,\
@@ -67,7 +72,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 7,\
@@ -76,7 +82,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 8,\
@@ -85,7 +92,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 9,\
@@ -94,7 +102,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 10,\
@@ -103,7 +112,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 11,\
@@ -112,7 +122,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 12,\
@@ -121,7 +132,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 13,\
@@ -130,7 +142,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 14,\
@@ -139,7 +152,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 15,\
@@ -148,7 +162,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 16,\
@@ -157,7 +172,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 17,\
@@ -166,7 +182,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 18,\
@@ -175,7 +192,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 19,\
@@ -184,7 +202,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 20,\
@@ -193,7 +212,8 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 },\
 {\
   \"id\": 21,\
@@ -202,6 +222,7 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
-  \"kind\": \"消耗品\"\
+  \"kind\": \"消耗品\",\
+  \"label\": null\
 }\
 ]";;
