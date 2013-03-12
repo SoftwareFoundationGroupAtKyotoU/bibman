@@ -76,18 +76,16 @@
                   </td>
                 </tr>
                 <tr>
-                  {{#if book.kind }}
-                    <th>種類</th>
-                    <td>
-                      <span>
-                        <span class="item-content">{{ book.kind }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="kind" data-value="{{ book.kind }}" data-type="select" />
-                      </span>
-                      <span>
-                        <span class="label">ラベル</span>
-                        <span class="item-content">{{#if book.label }}{{book.label}}{{/if}}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="label" data-value="{{ book.label }}" data-type="text" />
-                      </span>
-                    </td>
-                  {{/if}}
+                  <th>種類</th>
+                  <td>
+                    <span>
+                      <span class="item-content">{{ book.kind }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="kind" data-value="{{ book.kind }}" data-type="select" />
+                    </span>
+                    <span>
+                      <span class="label">ラベル</span>
+                      <span class="item-content">{{#if book.label }}{{book.label}}{{/if}}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="label" data-value="{{ book.label }}" data-type="text" />
+                    </span>
+                  </td>
                 </tr>
                 {{#if book.status }}
                   <tr>
@@ -214,16 +212,16 @@
             <tr>
               <th>種類</th>
               <td>
-                <select id="book-register-kind" data-item="kind" style="width: 150px"></select>
-                <span class="label">ラベル</span>
-                <input type="text" class="text" data-item="label" style="width: 148px" />
+                <select id="book-register-kind" data-item="kind" style="width: 100px"></select>
+                <span class="label">ラベル(管理番号)</span>
+                <input type="text" class="text" data-item="label" style="width: 124px" />
                 <span class="note">未記入可</span>
               </td>
             </tr>
             <tr>
               <th>状況</th>
               <td>
-                <select id="book-register-status" data-item="status" style="width: 150px"></select>
+                <select id="book-register-status" data-item="status" style="width: 100px"></select>
               </td>
             </tr>
           </table>

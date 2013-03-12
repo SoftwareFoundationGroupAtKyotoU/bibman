@@ -10,6 +10,7 @@ print_endline "[\
   \"author\": [ \"John\",\"Michael\" ],\
   \"publisher\": \"ACM\",\
   \"isbn\": \"9r239r29fj\",\
+  \"kind\": \"五十嵐\",
   \"status\": \"未購入\"\
 },\
 {\
@@ -19,6 +20,7 @@ print_endline "[\
   \"author\": [ \"Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"824923-3294\",\
+  \"kind\": \"消耗品\",
   \"status\": \"注文済\"\
 },\
 {\
@@ -28,5 +30,6 @@ print_endline "[\
   \"author\": [ \"1 Church\" ],\
   \"publisher\": \"Springer\",\
   \"isbn\": \"1824923-3294\",\
+  \"kind\": \"未定\",
   \"status\": \"未購入\"\
 }]";;
