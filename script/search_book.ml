@@ -44,16 +44,19 @@ let jsonify_book
 ;;
 
 let by_keywords =
-  let hit keywords str =
-    List.exists (BatString.exists (String.lowercase str)) keywords
+  let hit keyword str = BatString.exists (String.lowercase str) keyword in
+
+  let hit_filter isbn_to_authors entries keyword =
+    List.filter
+      (fun entry ->
+        let title = title_of_entry entry in
+        let isbn = isbn_of_entry entry in
+        let authors = BatHashtbl.find isbn_to_authors isbn in
+        hit keyword title || List.exists (hit keyword) authors)
+      entries
   in
-  let search_by_title (keywords : string list) (entries : entry list)
-      : entry list =
-    List.filter (fun entry -> hit keywords (title_of_entry entry)) entries
-  in
-  let search_by_author
-      dbh (keywords : string list) (entries : entry list) (isbns : string list)
-      : (entry list *  (string, string list) BatHashtbl.t) =
+
+  let isbn_to_authors dbh isbns : (string, string list) BatHashtbl.t =
     let isbn_aid =
       debug "isbn_aid";
       PGSQL(dbh) "SELECT * FROM rel_entry_authors WHERE isbn IN $@isbns"
@@ -63,35 +66,18 @@ let by_keywords =
       debug "authors";
       PGSQL(dbh) "SELECT * FROM author WHERE author_id IN $@aids"
     in
-    let author_hit_entries =
-      let hit_aids = BatList.filter_map
-        (fun (aid, name) -> if hit keywords name then Some aid else None)
-        authors
-      in
-      let hit_aids = BatSet.of_list hit_aids in
-      let isbn_to_entry =
-        hash_of_list entries isbn_of_entry (fun x -> x)
-      in
-      BatList.filter_map
-        (fun (isbn, aid) ->
-          match BatSet.mem aid hit_aids with
-          | false -> None | true -> Some (BatHashtbl.find isbn_to_entry isbn))
-        isbn_aid
+    let isbn_to_aids = hash_of_relation isbn_aid fst snd in
+    let aid_to_author = hash_of_list authors fst snd in
+    let isbn_authors =
+      List.map (fun isbn ->
+        let aids = BatHashtbl.find isbn_to_aids isbn in
+        (isbn, List.map (Hashtbl.find aid_to_author) aids))
+        isbns
     in
-    let isbn_to_authors =
-      let isbn_to_aids = hash_of_relation isbn_aid fst snd in
-      let aid_to_author = hash_of_list authors fst snd in
-      let isbn_authors =
-        List.map (fun isbn ->
-          let aids = BatHashtbl.find isbn_to_aids isbn in
-          (isbn, List.map (Hashtbl.find aid_to_author) aids))
-          isbns
-      in
-      hash_of_list isbn_authors fst snd
-    in
-    (author_hit_entries, isbn_to_authors)
+    hash_of_list isbn_authors fst snd
   in
-  let output dbh books isbn_to_entry isbn_to_authors =
+
+  let jsonify dbh books isbn_to_entry isbn_to_authors =
     let pid_to_publisher =
       let publishers = debug "publishers"; PGSQL(dbh) "SELECT * from publisher" in
       hash_of_list publishers fst snd
@@ -125,21 +111,18 @@ let by_keywords =
     let keywords = List.map String.lowercase keywords in
     let books = debug "books"; PGSQL(dbh) "SELECT * from book" in
     if BatList.is_empty books then
-      output dbh [] (BatHashtbl.create 0) (BatHashtbl.create 0)
+      jsonify dbh [] (BatHashtbl.create 0) (BatHashtbl.create 0)
     else
       let isbns = List.map isbn_of_book books in
       let entries =
         debug "entries";
         PGSQL(dbh) "SELECT * FROM entry WHERE isbn IN $@isbns"
       in
-      let title_hit_entries = search_by_title keywords entries in
-      let author_hit_entries, isbn_to_authors =
-        search_by_author dbh keywords entries isbns
-      in
+      let isbn_to_authors = isbn_to_authors dbh isbns in
       let hit_entries =
-        BatList.sort_unique
-          (fun e1 e2 -> compare (isbn_of_entry e1) (isbn_of_entry e2))
-          (title_hit_entries @ author_hit_entries)
+        List.fold_left
+          (fun entries keyword -> hit_filter isbn_to_authors entries keyword)
+          entries keywords
       in
       let isbn_to_hit_entry =
         hash_of_list hit_entries isbn_of_entry (fun x -> x)
@@ -149,7 +132,7 @@ let by_keywords =
           (fun book -> BatHashtbl.mem isbn_to_hit_entry (isbn_of_book book))
           books
       in
-      output dbh hit_books isbn_to_hit_entry isbn_to_authors
+      jsonify dbh hit_books isbn_to_hit_entry isbn_to_authors
 ;;
 
 let by_id =
