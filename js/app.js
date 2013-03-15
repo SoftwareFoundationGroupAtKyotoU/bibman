@@ -2,7 +2,8 @@
 
 Handlebars.registerHelper('template', function(name, context) {
   var subTemplate =  Handlebars.compile($('#' + name).html());
-  return new Handlebars.SafeString(subTemplate(context.hash.context || this));
+  var ctx = $.extend({}, context.hash, context.hash.context || {});
+  return new Handlebars.SafeString(subTemplate(ctx));
 });
 
 
@@ -122,7 +123,8 @@ Bibman.API = {};
       {
         dataType: 'json',
         type: api.type,
-        url: './../api/' + api.url
+        url: './../api/' + api.url,
+        traditional: true
       },
       api.settings || {}
     );
@@ -153,20 +155,19 @@ Bibman.API = {};
     { name: 'search_book', url: 'search.cgi', type: 'GET' },
     { name: 'lending', url: 'lending.cgi', type: 'GET' },
     { name: 'history', url: 'history.cgi', type: 'GET' },
-    { name: 'edit', url: 'edit.cgi', type: 'POST',
+    { name: 'edit_book', url: 'edit.cgi', type: 'POST',
       settings: { dataType: 'text' }
     },
     { name: 'wishbook', url: 'wishbook.cgi', type: 'GET' },
-    // { name: 'tex_download', url: 'tex.cgi', type: 'GET' },
     { name: 'register_book', url: 'register.cgi', type: 'POST' },
-    { name: 'lend_book', /* TODO: url:: 'lending' */ url: 'lend_book.cgi', type: 'POST',
+    { name: 'lend_book', url: 'lend_book.cgi', type: 'POST',
       settings: { dataType: 'text' }
     },
     { name: 'my_book', url: 'my_book.cgi', type: 'GET' }
   ].forEach(register_api);
 })();
 
-/* override lend book API */
+/* override lend book API to notify changes of lending states */
 (function() {
   var api = Bibman.API.lend_book;
 
@@ -407,7 +408,7 @@ Bibman.UI.set_lending_event_handler = (function() {
       [ 'lend', $lending ],
       [ 'return', $return ],
       [ 'reserve', $reserve ],
-      [ 'cancel_reservation', $cancel_reservation ]
+      [ 'cancel', $cancel_reservation ]
     ].forEach(function(arr) {
       set_event_handler.apply(this, arr);
     });
@@ -474,8 +475,7 @@ Bibman.BookList.UI = Bibman.Class({
 
       if (p) prevent();
       else {
-        Bibman.API.edit({
-          target: 'book',
+        Bibman.API.edit_book({
           id: $item.data('book-id'),
           item: $target.data('item'),
           value: val
@@ -731,17 +731,26 @@ Bibman.init = (function() {
 })();
 
 Bibman.collect_lendings_and_histories = function(books, callback) {
-  var ids = books.map(function(book) { return book.id; });
-  $.when(
-    Bibman.API.history({ id: ids }),
-    Bibman.API.lending({ id: ids })
-  ).done(function(res_histroy, res_lending) {
+  if (books.length === 0) {
     callback({
       books: books,
-      lendings: res_lending[0],
-      histories: res_histroy[0]
+      lendings: [],
+      histories: []
     });
-  });
+  }
+  else {
+    var ids = books.map(function(book) { return book.id; });
+    $.when(
+      Bibman.API.history({ id: ids }),
+      Bibman.API.lending({ id: ids })
+    ).done(function(res_histroy, res_lending) {
+      callback({
+        books: books,
+        lendings: res_lending[0],
+        histories: res_histroy[0]
+      });
+    });
+  }
 };
 
 /* search */
@@ -809,7 +818,7 @@ Bibman.init.load_callbacks.add(function() {
       });
   }
 
-  ['publisher', 'kind', 'status'].forEach(function (item) {
+  ['publisher', 'kind', 'status', 'location'].forEach(function (item) {
     add_options($('#book-register-' + item), Bibman.config.book[item].values);
   });
 
@@ -818,8 +827,8 @@ Bibman.init.load_callbacks.add(function() {
     var $register_form = $(e.target);
 
     var empty = false;
-    $register_form.find('input').each(function () {
-      empty = empty || $(this).val() === '';
+    $register_form.find('input,select').each(function () {
+      empty = empty || (!$(this).data('ignore') && $(this).val() === '');
     });
     if (empty) {
       window.alert('未入力の項目があります．');
@@ -833,20 +842,21 @@ Bibman.init.load_callbacks.add(function() {
     });
 
     Bibman.API.register_book(data)
-      .done(function(book) {
-        if (book.status === Bibman.config.book.status.purchase) {
+      .done(function(id) {
+        if (data.status === Bibman.config.book.status.purchase) {
           /* TODO: TeX download */
           console.log('TeX Downloading ...');
         }
         else {
-          booklist.unshift_book(book);
+          data.id = id;
+          booklist.unshift_book(data);
           drawer.draw(0, booklist.count());
         }
 
         elements.show();
       })
       .fail(function() {
-        window.alert('入力に誤りがあります．');
+        window.alert('入力に誤りがあるか，もしくは既に登録済みです．');
       });
   }
 
@@ -916,13 +926,12 @@ Bibman.init.load_callbacks.add(function() {
   });
 
   /* Book Search by external API */
-  function book_info(isbn, callback) {
-    $.ajax({
+  function book_info(isbn) {
+    return $.ajax({
       url: 'https://www.googleapis.com/books/v1/volumes',
       data: { q: 'isbn:' + isbn },
       type: 'GET',
-      dataType: 'jsonp',
-      success: callback
+      dataType: 'jsonp'
     });
   }
 
@@ -930,18 +939,22 @@ Bibman.init.load_callbacks.add(function() {
     var isbn = $('#book-register-isbn').val();
     if (isbn === '') return;
 
-    book_info(isbn, function(json) {
-      if (json.totalItems !== 1) {
-        window.alert('対応する書籍が見つかりませんでした．');
-        return;
-      }
+    book_info(isbn)
+      .done(function (json) {
+        if (json.totalItems !== 1) {
+          window.alert('対応する書籍が見つかりませんでした．');
+          return;
+        }
 
-      var volume_info = json.items[0].volumeInfo;
-      $('#book-register-title').val(volume_info.title);
-      $('#book-register-author').val(volume_info.authors.join(', '));
-      $('#book-register-publisher').val(volume_info.publisher);
-      $('#book-register-publish-year').val(volume_info.publishedDate);
-    });
+        var volume_info = json.items[0].volumeInfo;
+        $('#book-register-title').val(volume_info.title);
+        $('#book-register-author').val(volume_info.authors.join(', '));
+        $('#book-register-publisher').val(volume_info.publisher);
+        $('#book-register-publish-year').val(volume_info.publishedDate);
+      })
+      .fail(function() {
+        window.alert('書籍情報の取得に失敗しました．');
+      });
   });
 });
 
@@ -951,18 +964,21 @@ Bibman.init.load_callbacks.add(function() {
   function list_books(books, $list_block) {
     Bibman.collect_lendings_and_histories(books, function(result) {
       var booklist = new Bibman.BookList(Bibman.user, result);
-      if (booklist.count() === 0) return;
-
-      var drawer = new Bibman.BookList.UI.AllDrawer(
-        booklist,
-        $('#book-item-template'),
-        $list_block
-      );
-      drawer.draw();
+      if (booklist.count() === 0) {
+        $list_block.empty();
+      }
+      else {
+        var drawer = new Bibman.BookList.UI.AllDrawer(
+          booklist,
+          $('#book-item-template'),
+          $list_block
+        );
+        drawer.draw();
+      }
     });
   }
 
-  function list_all() {
+  function update_my_lists() {
     Bibman.API.my_book({ account: Bibman.user.account() })
       .done(function(mydata) {
         list_books(mydata.lending, $('#my-lending'));
@@ -971,8 +987,8 @@ Bibman.init.load_callbacks.add(function() {
       });
   }
 
-  Bibman.API.lend_book.lending_callbacks.add(list_all);
-  list_all();
+  Bibman.API.lend_book.lending_callbacks.add(update_my_lists);
+  update_my_lists();
 });
 
 /* swtich contents */

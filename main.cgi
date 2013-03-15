@@ -1,5 +1,7 @@
 #!/home/webserver/.opam/4.00.1/bin/ocaml
 
+(* TODO: SESSION MANAGE *)
+
 let buffer_size = 1024
 ;;
 let html_template_file = "static/main.html";

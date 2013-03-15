@@ -1,48 +1,10 @@
 let debug = Bibman.debug
 ;;
 
-let hash_of_relation ?(seed=128) rel keyfun valfun =
-  let hash = BatHashtbl.create seed in
-  List.iter
-    (fun x ->
-      let key = keyfun x in
-      let v = valfun x in
-      BatHashtbl.add hash key (v :: (BatHashtbl.find_default hash key [])))
-    rel;
-  hash
-;;
-
-let hash_of_list ?(seed=128) l keyfun valfun =
-  let hash = BatHashtbl.create seed in
-  List.iter
-    (fun x ->
-      let key = keyfun x in
-      let v = valfun x in
-      BatHashtbl.add hash key v)
-    l;
-  hash
-;;
-
 open Model
 ;;
 
-let jsonify_book
-    bid title authors publish_year publisher isbn kind status label loc =
-  let authors = List.map (fun author -> `String author) authors in
-  `Assoc [
-    ("id", `Int (Int32.to_int bid));
-    ("title", `String title);
-    ("publish_year", `Int (Int32.to_int publish_year));
-    ("author", `List authors);
-    ("publisher", `String publisher);
-    ("isbn", `String isbn);
-    ("kind", `String kind);
-    ("status", `String status);
-    ("label", `String label);
-    ("location", `String loc);
-  ]
-;;
-
+(* TODO: exclude wish-books *)
 let by_keywords =
   let hit keyword str = BatString.exists (String.lowercase str) keyword in
 
@@ -52,7 +14,9 @@ let by_keywords =
         let title = title_of_entry entry in
         let isbn = isbn_of_entry entry in
         let authors = BatHashtbl.find isbn_to_authors isbn in
-        hit keyword title || List.exists (hit keyword) authors)
+        hit keyword title ||
+        hit keyword isbn ||
+        List.exists (hit keyword) authors)
       entries
   in
 
@@ -85,25 +49,12 @@ let by_keywords =
     Some (`List (
       List.map
         (fun book ->
-          let isbn = isbn_of_book book in
-          let entry = BatHashtbl.find isbn_to_entry isbn in
+          let entry = BatHashtbl.find isbn_to_entry (isbn_of_book book) in
           let pid = publisher_id_of_entry entry in
           let publisher = BatHashtbl.find pid_to_publisher pid in
-          let authors = BatHashtbl.find isbn_to_authors isbn in
-          jsonify_book
-            (id_of_book book)
-            (title_of_entry entry)
-            authors
-            (publish_year_of_entry entry)
-            publisher
-            isbn
-            (kind_of_book book)
-            (status_of_book book)
-            (label_of_book book)
-            (location_of_book book)
-        )
-        books
-    ))
+          let authors = BatHashtbl.find isbn_to_authors (isbn_of_entry entry) in
+          jsonify_book book entry authors publisher)
+        books))
   in
 
   (* search_book *)
@@ -136,47 +87,8 @@ let by_keywords =
 ;;
 
 let by_id =
-  let fst_or_raise l =
-    if BatList.is_empty l then raise Exit else BatList.first l
-  in 
-  let body dbh id =
-    let id = Int32.of_string id in
-    let book =
-      fst_or_raise (PGSQL(dbh) "SELECT * FROM book WHERE book_id = $id")
-    in
-    let isbn = isbn_of_book book in
-    let entry =
-      BatList.first (PGSQL(dbh) "SELECT * FROM entry WHERE isbn = $isbn")
-    in
-    let authors : string list =
-      let aids =
-        PGSQL(dbh) "SELECT author_id FROM rel_entry_authors WHERE isbn = $isbn"
-      in
-      PGSQL(dbh) "SELECT name FROM author WHERE author_id IN $@aids"
-    in
-    let pid = publisher_id_of_entry entry in
-    let publisher =
-      BatList.first
-        (PGSQL(dbh) "SELECT name FROM publisher WHERE publisher_id = $pid")
-    in
-    Some (jsonify_book
-            (id_of_book book)
-            (title_of_entry entry)
-            authors
-            (publish_year_of_entry entry)
-            publisher
-            isbn
-            (kind_of_book book)
-            (status_of_book book)
-            (label_of_book book)
-            (location_of_book book))
-  in
-
   fun dbh -> function
-  | id :: [] -> begin
-    try body dbh id with
-    | Exit -> Some (`Null)
-  end
+  | bid :: [] -> json_of_book_id dbh (Int32.of_string bid)
   | _ -> assert false
 ;;
 
@@ -186,7 +98,5 @@ let actions = [
 ]
 ;;
 
-let () = Printexc.record_backtrace true;;
-
-let () = try Bibman.run actions Sys.argv with _ -> Printexc.print_backtrace stdout
+let () = Bibman.run actions Sys.argv
 ;;

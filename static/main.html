@@ -33,6 +33,9 @@
         現在の予約人数: <span class="reserver-count">{{ reserver_count }}</span>
       </span>
     </script>
+    <script id="edit-item-template" type="text/x-handlebars-template" charset="utf-8">
+<span class="item-content">{{ value }}</span><img class="edit-mark display-none" title="編集" src="./../images/edit.jpg"  data-item={{ name }} data-value="{{ value }}" data-type="{{ type }}" />
+    </script>
     <script id="book-item-template" type="text/x-handlebars-template" charset="utf-8">
 <ul class="book-list">
   {{#each items}}
@@ -45,14 +48,14 @@
         </td>
         <td class="item">
           <div class="book-description-short" style="font-size: 1.3em" title="タイトル">
-              <span class="item-content">{{ book.title }}</span><img class="edit-mark display-none" title="編集" src="./../images/edit.jpg"  data-item="title" data-value="{{ book.title }}" data-type="text" />
+            {{template "edit-item-template" value=book.title name="title" type="text" }}
           </div>
           <div class="book-description-short" > 
             <span title="出版年">
-              <span class="item-content">{{ book.publish_year }}</span><img class="edit-mark display-none" title="編集" src="./../images/edit.jpg" data-item="publish_year" data-value="{{ book.publish_year }}" data-type="text" />
+              {{template "edit-item-template" value=book.publish_year name="publish_year" type="text" }}
             </span>
             <span title="筆者">
-              <span class="item-content">{{ book.author }}</span><img class="edit-mark display-none" title="編集" src="./../images/edit.jpg" data-item="author" data-value="{{ book.author }}" data-type="text" />
+              {{template "edit-item-template" value=book.author name="author" type="text" }}
             </span>
           </div>
           <span class="lending">
@@ -66,32 +69,38 @@
                 <tr>
                   <th>出版社</th>
                   <td>
-                    <span class="item-content">{{ book.publisher }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="publisher" data-value="{{ book.publisher }}" data-type="select" />
+                    {{template "edit-item-template" value=book.publisher name="publisher" type="select" }}
                   </td>
                 </tr>
                 <tr>
                   <th>ISBN</th>
                   <td>
-                    <span class="item-content">{{ book.isbn }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="isbn" data-value="{{ book.isbn }}" data-type="text" />
+                    {{template "edit-item-template" value=book.isbn name="isbn" type="text" }}
                   </td>
                 </tr>
                 <tr>
                   <th>種類</th>
                   <td>
                     <span>
-                      <span class="item-content">{{ book.kind }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="kind" data-value="{{ book.kind }}" data-type="select" />
+                      {{template "edit-item-template" value=book.kind name="kind" type="select" }}
                     </span>
                     <span>
                       <span class="label">ラベル</span>
-                      <span class="item-content">{{#if book.label }}{{book.label}}{{/if}}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="label" data-value="{{ book.label }}" data-type="text" />
+                      {{template "edit-item-template" value=book.label name="label" type="text" }}
                     </span>
+                  </td>
+                </tr>
+                <tr>
+                  <th>配置場所</th>
+                  <td>
+                    {{template "edit-item-template" value=book.location name="location" type="select" }}
                   </td>
                 </tr>
                 {{#if book.status }}
                   <tr>
                     <th>状況</th>
                     <td>
-                      <span class="item-content">{{ book.status }}</span><img class="edit-mark display-none" title="編集"  src="./../images/edit.jpg" data-item="status" data-value="{{ book.status }}" data-type="select" />
+                      {{template "edit-item-template" value=book.status name="status" type="select" }}
                     </td>
                   </tr>
                 {{/if}}
@@ -214,8 +223,14 @@
               <td>
                 <select id="book-register-kind" data-item="kind" style="width: 100px"></select>
                 <span class="label">ラベル(管理番号)</span>
-                <input type="text" class="text" data-item="label" style="width: 124px" />
+                <input type="text" class="text" data-item="label" data-ignore="1" style="width: 124px" />
                 <span class="note">未記入可</span>
+              </td>
+            </tr>
+            <tr>
+              <th>配置場所</th>
+              <td>
+                <select id="book-register-location" data-item="location" style="width: 100px"></select>
               </td>
             </tr>
             <tr>
