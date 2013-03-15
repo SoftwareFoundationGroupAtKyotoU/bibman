@@ -24,12 +24,9 @@ location = {
 mail = {
   (* mail domain. *)
   domain = "fos.kuis.kyoto-u.ac.jp"
-
-  (* name of mail sender. *)
-  sender_name = "admin"
-  (* address of mail sender. *)
-  sender_address = "admin@fos.kuis.kyoto-u.ac.jp"
-
+  (* name (in the first component) and address (in the second component) of
+     mail sender. *)
+  sender = ("admin", "admin@fos.kuis.kyoto-u.ac.jp")
   lending = {
     (* subject of the mail for lending notifications. *)
     subject = ""
@@ -41,7 +38,7 @@ mail = {
        	$y: publisher year
        	$l: location
         *)
-    content_file = ""
+    content = ""
   }
 }
 

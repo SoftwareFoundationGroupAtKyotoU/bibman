@@ -152,6 +152,39 @@ let run =
 
 (* Misc *)
 
+let send_book_mail
+    dbh
+    (bid : int32)
+    (account : string)
+    (subject : string)
+    (content : string)
+  : bool =
+  match Model.book_info_of_book_id dbh bid with
+  | None -> false
+  | Some (book, entry, authors, publisher) ->
+    let buf = Buffer.create 1024 in
+    let () =
+      Buffer.add_substitute buf
+        (function
+        | "t" -> Model.title_of_entry entry
+        | "a" -> String.concat ", " authors
+        | "p" -> publisher
+        | "y" -> Int32.to_string (Model.publish_year_of_entry entry)
+        | "l" -> Model.location_of_book book
+        | x -> x)
+        content
+    in
+    let mail_address = Printf.sprintf "%s@%s" account Config.mail_domain in
+    let message = Netsendmail.compose
+      ~from_addr: Config.mail_sender
+      ~to_addrs:  [account, mail_address]
+      ~subject:   subject
+      (Buffer.contents buf)
+    in
+    Netsendmail.sendmail message;
+    true
+;;
+
 let user_id_or_raise dbh account =
   match Model.find_user_id dbh account with
   | None -> raise (Invalid_argument "account")

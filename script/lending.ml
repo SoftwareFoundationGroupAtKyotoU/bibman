@@ -111,52 +111,54 @@ let lend =
 
 (* TODO: split into 'return' and 'next_reserver' *)
 let return =
+  let lend_reserver dbh bid reserver_id =
+    let module Date = CalendarLib.Date in
+    let start_date = Date.today () in
+    let due_date =
+      Date.add start_date (Date.Period.day Config.lending_days)
+    in
+    PGSQL(dbh)
+      "INSERT INTO lending (book_id, user_id, start_date, due_date) VALUES ($bid, $reserver_id, $start_date, $due_date)";
+    PGSQL(dbh)
+      "DELETE FROM reservation WHERE book_id = $bid AND user_id = $reserver_id";
+    let reserver_account = BatList.first
+      (PGSQL(dbh) "SELECT account FROM lab8_user WHERE user_id = $reserver_id")
+    in
+    ignore
+      (Bibman.send_book_mail
+         dbh bid reserver_account
+         Config.lending_subject  Config.lending_content)
+  in
+
   let body dbh bid =
     let l =
       PGSQL(dbh) "SELECT start_date, user_id FROM lending WHERE book_id = $bid"
     in
     match first l with
     | None ->
-      Bibman.error "book-id and/or account" "The user aren't lending the book"
+      Bibman.error
+        "book-id and/or account"
+        "The user aren't lending the book"
     | Some (start_date, uid) ->
       let today = CalendarLib.Date.today () in
       PGSQL(dbh)
         "DELETE FROM lending WHERE book_id = $bid";
       PGSQL(dbh)
-        "INSERT INTO history (book_id, user_id, start_date, return_date) VALUES ($bid, $uid, $start_date, $today)"
+        "INSERT INTO history (book_id, user_id, start_date, return_date) VALUES ($bid, $uid, $start_date, $today)";
+      let reserver_ids =
+        PGSQL(dbh)
+          "SELECT user_id FROM reservation WHERE book_id = $bid ORDER BY reservation_date ASC LIMIT 1"
+      in
+      (* lend a reserver the book *)
+      match first reserver_ids with
+      | None -> ()
+      | Some reserver_id -> lend_reserver dbh bid reserver_id
   in
 
   fun dbh -> function
   | bid :: [] ->
     body dbh (Int32.of_string bid);
     None
-  | _ -> assert false
-;;
-
-let next_reserver =
-  let body dbh bid =
-    let reserver_ids =
-      PGSQL(dbh)
-        "SELECT user_id FROM reservation WHERE book_id = $bid ORDER BY reservation_date ASC LIMIT 1"
-    in
-    match first reserver_ids with
-    | None -> raise (Bibman.Invalid_argument "book-id")
-    | Some reserver_id ->
-      let module Date = CalendarLib.Date in
-      let start_date = Date.today () in
-      let due_date =
-        Date.add start_date (Date.Period.day Config.lending_days)
-      in
-      PGSQL(dbh)
-        "INSERT INTO lending (book_id, user_id, start_date, due_date) VALUES ($bid, $reserver_id, $start_date, $due_date)";
-      PGSQL(dbh)
-        "DELETE FROM reservation WHERE book_id = $bid AND user_id = $reserver_id";
-      BatList.first
-        (PGSQL(dbh) "SELECT account FROM lab8_user WHERE user_id = $reserver_id")
-  in
-
-  fun dbh -> function
-  | bid :: [] -> Some (`Stringlit (body dbh (Int32.of_string bid)))
   | _ -> assert false
 ;;
 
@@ -218,7 +220,6 @@ let actions = [
 
   ("lend", ([`NonEmpty "account"; `Int32 "book-id"; ], lend));
   ("return", ([`Int32 "book-id"; ], return));
-  ("next_reserver", ([`Int32 "book-id"; ], next_reserver));
   ("reserve", ([`NonEmpty "account"; `Int32 "book-id"; ], reserve));
   ("cancel",  ([`NonEmpty "account"; `Int32 "book-id"; ], cancel));
 ]

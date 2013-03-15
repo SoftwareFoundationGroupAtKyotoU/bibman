@@ -35,12 +35,9 @@ let mail_domain =
   new string_cp ~group ["mail"; "domain"; ] "" "mail domain."
 ;;
 
-let mail_sender_name =
-  new string_cp ~group ["mail"; "sender_name"] "" "name of mail sender."
-;;
-
-let mail_sender_address =
-  new string_cp ~group ["mail"; "sender_address"] "" "address of mail sender."
+let mail_sender =
+  new tuple2_cp string_wrappers string_wrappers ~group ["mail"; "sender"]
+    ("","") "name (in the first component) and address (in the second component) of mail sender."
 ;;
 
 let lending_subject =
@@ -136,16 +133,13 @@ let location_values = location_values # get
 let mail_domain = mail_domain # get
 ;;
 
-let mail_sender_name = mail_sender_name # get
-;;
-
-let mail_sender_address = mail_sender_address # get
+let mail_sender = mail_sender # get
 ;;
 
 let lending_subject = lending_subject # get
 ;;
 
-let lending_content_file = lending_content # get
+let lending_content = lending_content # get
 ;;
 
 let db_host = db_host # get
