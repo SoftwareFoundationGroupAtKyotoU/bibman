@@ -1,3 +1,6 @@
+CalendarLib.Time_Zone.change CalendarLib.Time_Zone.Local
+;;
+
 let debug =
   let df = try Sys.getenv "DEBUG" <> "" with Not_found -> false in
   if df then prerr_endline else (fun _ -> ())
