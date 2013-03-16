@@ -574,7 +574,7 @@ Bibman.ListStepUI = Bibman.Class({
 
   _new_links: function(count_per_page) {
     var self = this;
-    return _.range(parseInt(this._count / count_per_page, 10) + 1).map(
+    return _.range(parseInt((this._count - 1) / count_per_page, 10) + 1).map(
       function (i) {
         var $a = $('<a>'+ (i + 1) +'</a>');
         self._set_event_handler($a, i);
