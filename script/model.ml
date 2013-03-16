@@ -55,10 +55,6 @@ let label_of_book ((_, _, _, _, label, _, _, _) : book) = label
 ;;    
 let status_of_book ((_, _, _, _, _, status, _, _) : book) = status
 ;;
-(* let isbn_of_book ((_, isbn, _, _, _, _, _, _) : book) = isbn *)
-(* ;; *)
-(* let isbn_of_book ((_, isbn, _, _, _, _, _, _) : book) = isbn *)
-(* ;; *)
 
 
 (** entry **)

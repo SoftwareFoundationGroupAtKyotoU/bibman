@@ -24,7 +24,7 @@ let () = run
   ~req_content_type:[ MimeType.form_encoded; ]
   ~required_params:[
     ("id", `Int32);
-    ("item", `Symbol ["isbn"; "title"; "author"; "publish_year"; "publisher";
+    ("item", `Symbol ["title"; "author"; "publish_year"; "publisher";
                       "location"; "kind"; "label"; "status"; ]);
     ("value", `Any);
   ]

@@ -1,17 +1,6 @@
 open Model
 ;;
 
-let isbn dbh id old_isbn new_isbn =
-    if old_isbn = new_isbn then ()
-    (* 既存の ISBN への変更は不可 (許すと書籍の参照先自体が変わってしまうため) *)
-    else if isbn_exists dbh new_isbn then raise Exit
-    else bepgin
-      PGSQL(dbh) "UPDATE entry SET (isbn) = ($new_isbn) WHERE isbn = $old_isbn";
-      PGSQL(dbh) "UPDATE book SET (isbn) = ($new_isbn) WHERE book_id = $id";
-      PGSQL(dbh) "UPDATE rel_entry_authors SET (isbn) = ($new_isbn) WHERE isbn = $old_isbn"
-    end
-;;
-
 let title dbh _ isbn title =
   PGSQL(dbh) "UPDATE entry SET (title) = ($title) WHERE isbn = $isbn"
 ;;
@@ -98,7 +87,6 @@ let action_generator =
 ;;
 
 let actions = List.map action_generator [
-  ("isbn", isbn);
   ("title", title);
   ("author", author);
   ("publish_year", publish_year);

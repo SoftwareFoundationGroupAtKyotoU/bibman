@@ -12,15 +12,15 @@ let isbn_exists_in_book dbh isbn =
 
 let entry =
   let body dbh isbn title authors pyear publisher =
-    let pid = match find_publisher dbh publisher with
-      | Some pid -> pid
-      | None ->
-        Bibman.error
-          "publisher"
-          (Printf.sprintf "Publisher %s hasn't been registered" publisher)
-    in
     if isbn_exists dbh isbn then added_already "ISBN" isbn
     else begin
+      let pid = match find_publisher dbh publisher with
+        | Some pid -> pid
+        | None ->
+          Bibman.error
+            "publisher"
+            (Printf.sprintf "Publisher %s hasn't been registered" publisher)
+      in
       PGSQL(dbh)
         "INSERT INTO entry (isbn, title, publish_year, publisher_id) VALUES ($isbn, $title, $pyear, $pid)";
       let aids = List.map (find_or_insert_author dbh) authors in
