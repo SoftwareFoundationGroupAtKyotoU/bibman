@@ -47,24 +47,29 @@ let status dbh id _ status =
 
 let purchase =
   let body dbh bid =
+    let () =
+      PGSQL(dbh) "UPDATE book SET (purchase_date) = (now()) WHERE book_id = $bid"
+    in
     match
       first (PGSQL(dbh) "SELECT user_id FROM wish_book WHERE book_id = $bid")
     with
-    | None -> raise (Bibman.Invalid_argument "book-id")
+    | None -> ()
     | Some uid -> begin
       PGSQL(dbh) "DELETE FROM wish_book WHERE book_id = $bid";
       let account =
         BatList.first
           (PGSQL(dbh) "SELECT account FROM lab8_user WHERE user_id = $uid")
       in
-      Bibman.send_book_mail
-        dbh bid account
-        Config.wish_book_subject Config.wish_book_content
+      ignore (
+        Bibman.send_book_mail
+          dbh bid account
+          Config.wish_book_subject Config.wish_book_content
+      )
     end
   in
 
   fun dbh -> function
-  | bid :: [] -> body dbh (Int32.of_string bid)
+  | bid :: [] -> body dbh (Int32.of_string bid); None
   | _ -> assert false
 ;;
 
@@ -86,7 +91,9 @@ let action_generator =
     (name, ([`Int32 "book-id"; `String "value"], action))
 ;;
 
-let actions = List.map action_generator [
+let actions = [
+  ("purchase", ([`Int32 "book-id"; ], purchase));
+] @ (List.map action_generator [
   ("title", title);
   ("author", author);
   ("publish_year", publish_year);
@@ -95,7 +102,7 @@ let actions = List.map action_generator [
   ("kind", kind);
   ("label", label);
   ("status", status);
-]
+])
 ;;
 
 let () = Bibman.run actions Sys.argv

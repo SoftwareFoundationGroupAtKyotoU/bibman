@@ -26,8 +26,12 @@ let main (cgi: Netcgi.cgi) : unit =
       "../script/add"
       [ "book"; isbn; loc; kind; label; status; ]
   in
-  if success && status <> Config.status_purchase then
-    ignore (process_command "../script/add" [ "wish_book"; "t-sekiym"; !bid ]) (* TODO: user account *)
+  if success then ignore (
+    if status = Config.status_purchase then
+      process_command "../script/edit" [ "purchase"; !bid; ]
+    else
+      process_command "../script/add" [ "wish_book"; "t-sekiym"; !bid ] (* TODO: user account *)
+  )
 ;;
 
   (* let publishers = *)
