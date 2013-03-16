@@ -109,25 +109,20 @@ let run
     (fun cgi -> assert_arguments cgi required_params; f cgi)
 ;;
 
-let process_command =
-  let rec read_all acc in_ch =
-    let line = try Some (input_line in_ch) with End_of_file -> None in
-    match line with
-    | Some line -> read_all (Printf.sprintf "%s\n%s" acc line) in_ch
-    | None -> acc
-  in
-
-  fun
-    (prog : string) (args : string list) ->
+let process_command (prog : string) (args : string list) : string option =
     let mine_in_fd, prog_out_fd = Unix.pipe () in
-    let in_ch = Unix.in_channel_of_descr mine_in_fd in
     let pid =
       Unix.create_process prog (Array.of_list (prog :: args))
         Unix.stdin prog_out_fd Unix.stderr
     in
     Unix.close prog_out_fd;
-    let res = read_all "" in_ch in
-    Unix.close mine_in_fd;
+    let in_ch =
+      BatIO.input_channel
+        ~autoclose:true
+        ~cleanup:true
+        (Unix.in_channel_of_descr mine_in_fd)
+    in
+    let res = BatIO.read_all in_ch in
     let _, status = Unix.waitpid [ Unix.WUNTRACED ] pid in
     match status with
     | Unix.WEXITED 0 -> Some res
