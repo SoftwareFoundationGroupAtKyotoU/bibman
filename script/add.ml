@@ -52,10 +52,10 @@ let book =
     else begin
       PGSQL(dbh)
         "INSERT INTO book (isbn, location, kind, label, status) VALUES ($isbn, $loc, $kind, $label, $status)";
-      let bid =
-        BatList.first (PGSQL(dbh) "SELECT book_id FROM book WHERE isbn = $isbn")
-      in
-      `Int (Int32.to_int bid)
+      let bid_opt = BatList.first (PGSQL(dbh) "SELECT currval('book_book_id_seq')") in
+      match bid_opt with
+      | Some bid -> `Intlit (Int64.to_string bid)
+      | None -> assert false
     end
   in
 
