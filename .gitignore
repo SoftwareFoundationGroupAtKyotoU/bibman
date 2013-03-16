@@ -1,0 +1,8 @@
+api/*.cgi
+
+script/add
+script/edit
+script/search_book
+script/lending
+script/catalog
+script/my
