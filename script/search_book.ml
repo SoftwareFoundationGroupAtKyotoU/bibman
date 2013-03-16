@@ -60,7 +60,10 @@ let by_keywords =
   (* search_book *)
   fun dbh keywords ->
     let keywords = List.map String.lowercase keywords in
-    let books = debug "books"; PGSQL(dbh) "SELECT * from book" in
+    let books =
+      debug "books";
+      PGSQL(dbh) "SELECT * from book WHERE book_id NOT IN (SELECT book_id FROM wish_book)"
+    in
     if BatList.is_empty books then
       jsonify dbh [] (BatHashtbl.create 0) (BatHashtbl.create 0)
     else
