@@ -158,7 +158,7 @@ Bibman.API = {};
     { name: 'edit_book', url: 'edit.cgi', type: 'POST',
       settings: { dataType: 'text' }
     },
-    { name: 'wishbook', url: 'wishbook.cgi', type: 'GET' },
+    { name: 'wishbook', url: 'wish_book.cgi', type: 'GET' },
     { name: 'register_book', url: 'register.cgi', type: 'POST' },
     { name: 'lend_book', url: 'lend_book.cgi', type: 'POST',
       settings: { dataType: 'text' }

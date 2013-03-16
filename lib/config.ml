@@ -55,6 +55,21 @@ let lending_content =
 \t$l: location\n"
 ;;
 
+let wish_book_subject =
+  new string_cp ~group ["mail"; "wish_book"; "subject"; ] ""
+    "subject of the mail for wish-book notifications."
+;;
+
+let wish_book_content =
+  new string_cp ~group ["mail"; "wish_book"; "content"; ] ""
+"content of the mail for wish-book notifications. Each alphabet following $ is replaced with information of a book.\n\
+\t$t: title\n\
+\t$a: author names\n\
+\t$p: publisher\n\
+\t$y: publisher year\n\
+\t$l: location\n"
+;;
+
 let db_host = new string_cp ~group ["database"; "host"; ] ""
   "host name on which the database service is working"
 ;;
@@ -140,6 +155,12 @@ let lending_subject = lending_subject # get
 ;;
 
 let lending_content = lending_content # get
+;;
+
+let wish_book_subject = wish_book_subject # get
+;;
+
+let wish_book_content = wish_book_content # get
 ;;
 
 let db_host = db_host # get

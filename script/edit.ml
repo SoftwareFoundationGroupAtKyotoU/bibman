@@ -5,7 +5,7 @@ let isbn dbh id old_isbn new_isbn =
     if old_isbn = new_isbn then ()
     (* 既存の ISBN への変更は不可 (許すと書籍の参照先自体が変わってしまうため) *)
     else if isbn_exists dbh new_isbn then raise Exit
-    else begin
+    else bepgin
       PGSQL(dbh) "UPDATE entry SET (isbn) = ($new_isbn) WHERE isbn = $old_isbn";
       PGSQL(dbh) "UPDATE book SET (isbn) = ($new_isbn) WHERE book_id = $id";
       PGSQL(dbh) "UPDATE rel_entry_authors SET (isbn) = ($new_isbn) WHERE isbn = $old_isbn"
@@ -59,10 +59,19 @@ let status dbh id _ status =
 let purchase =
   let body dbh bid =
     match
-      exists (PGSQL(dbh) "SELECT 1 FROM wish_book WHERE book_id = $bid")
+      first (PGSQL(dbh) "SELECT user_id FROM wish_book WHERE book_id = $bid")
     with
-    | false -> raise (Bibman.Invalid_argument "book-id")
-    | true -> PGSQL(dbh) "DELETE FROM wish_book WHERE book_id = $bid"
+    | None -> raise (Bibman.Invalid_argument "book-id")
+    | Some uid -> begin
+      PGSQL(dbh) "DELETE FROM wish_book WHERE book_id = $bid";
+      let account =
+        BatList.first
+          (PGSQL(dbh) "SELECT account FROM lab8_user WHERE user_id = $uid")
+      in
+      Bibman.send_book_mail
+        dbh bid account
+        Config.wish_book_subject Config.wish_book_content
+    end
   in
 
   fun dbh -> function

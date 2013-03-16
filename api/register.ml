@@ -17,11 +17,17 @@ let main (cgi: Netcgi.cgi) : unit =
   let label = arg_value "label" in
   let status = arg_value "status" in
   let loc = arg_value "location" in
-  redirect_to_script
-    cgi
-    ~content_type:MimeType.text
-    "../script/add"
-    [ "book"; isbn; loc; kind; label; status; ]
+  let bid = ref "" in
+  let success =
+    redirect_to_script
+      cgi
+      ~content_type:MimeType.text
+      ~output: (fun id -> bid := id; cgi # out_channel # output_string id)
+      "../script/add"
+      [ "book"; isbn; loc; kind; label; status; ]
+  in
+  if success && status <> Config.status_purchase then
+    ignore (process_command "../script/add" [ "wish_book"; "t-sekiym"; !bid ]) (* TODO: user account *)
 ;;
 
   (* let publishers = *)

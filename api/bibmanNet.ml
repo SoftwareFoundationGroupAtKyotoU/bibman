@@ -118,13 +118,12 @@ let process_command =
   in
 
   fun
-    ?(in_fd = Unix.stdin)
     (prog : string) (args : string list) ->
     let mine_in_fd, prog_out_fd = Unix.pipe () in
     let in_ch = Unix.in_channel_of_descr mine_in_fd in
     let pid =
       Unix.create_process prog (Array.of_list (prog :: args))
-        in_fd prog_out_fd Unix.stderr
+        Unix.stdin prog_out_fd Unix.stderr
     in
     Unix.close prog_out_fd;
     let res = read_all "" in_ch in
@@ -138,14 +137,17 @@ let process_command =
 let redirect_to_script
     (cgi : Netcgi.cgi)
     ?(content_type = MimeType.json)
+    ?(output : string -> unit = cgi # out_channel  # output_string)
     (script_file : string)
     (args : string list)
-    : unit
+    : bool
     =
   cgi # set_header ~content_type ();
   let res = process_command script_file args in
-  (match res with
-  | Some txt -> cgi # out_channel # output_string txt
-  | None -> cgi # set_header ~status:`Bad_request ());
-  cgi # out_channel # commit_work ()
+  let res = match res with
+  | Some txt -> output txt; true
+  | None -> cgi # set_header ~status:`Bad_request (); false
+  in
+  cgi # out_channel # commit_work ();
+  res
 ;;

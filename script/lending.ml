@@ -127,7 +127,7 @@ let return =
     ignore
       (Bibman.send_book_mail
          dbh bid reserver_account
-         Config.lending_subject  Config.lending_content)
+         Config.lending_subject Config.lending_content)
   in
 
   let body dbh bid =

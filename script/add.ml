@@ -48,15 +48,15 @@ let book =
     if not (isbn_exists dbh isbn) then
       Bibman.error
         "isbn"
-        (Printf.sprintf "ISBN %s hasn't been registered as entry" isbn);
-    if (isbn_exists_in_book dbh isbn) then
-      added_already "ISBN" isbn;
-    PGSQL(dbh)
-      "INSERT INTO book (isbn, location, kind, label, status) VALUES ($isbn, $loc, $kind, $label, $status)";
-    let bid =
-      BatList.first (PGSQL(dbh) "SELECT book_id FROM book WHERE isbn = $isbn")
-    in
-    `Int (Int32.to_int bid)
+        (Printf.sprintf "ISBN %s hasn't been registered as entry" isbn)
+    else begin
+      PGSQL(dbh)
+        "INSERT INTO book (isbn, location, kind, label, status) VALUES ($isbn, $loc, $kind, $label, $status)";
+      let bid =
+        BatList.first (PGSQL(dbh) "SELECT book_id FROM book WHERE isbn = $isbn")
+      in
+      `Int (Int32.to_int bid)
+    end
   in
 
   fun dbh -> function
@@ -77,6 +77,7 @@ let wish_book =
         prerr_endline "The book has been registered already";
         raise (Bibman.Invalid_argument "book-id")
       | false ->
+        (* TODO: mail to staff *)
         PGSQL(dbh)
           "INSERT INTO wish_book (book_id, user_id) VALUES ($bid, $uid)"
     end

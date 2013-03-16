@@ -8,11 +8,15 @@ let main (cgi: Netcgi.cgi) : unit =
   let book_id = arg_value "id" in
   let item = arg_value "item" in
   let value = arg_value "value" in
-  redirect_to_script
-    cgi
-    ~content_type:MimeType.text
-    "../script/edit"
-    [ item; book_id; value; ]
+  let success =
+    redirect_to_script
+      cgi
+      ~content_type:MimeType.text
+      "../script/edit"
+      [ item; book_id; value; ]
+  in
+  if success && item = "status" && value = Config.status_purchase then
+    ignore (process_command "../script/edit" [ "purchase"; book_id; ])
 ;;
 
 let () = run
@@ -20,7 +24,7 @@ let () = run
   ~req_content_type:[ MimeType.form_encoded; ]
   ~required_params:[
     ("id", `Int32);
-    ("item", `Symbol ["isbn"; "title"; "publish_year"; "publisher";
+    ("item", `Symbol ["isbn"; "title"; "author"; "publish_year"; "publisher";
                       "location"; "kind"; "label"; "status"; ]);
     ("value", `Any);
   ]
