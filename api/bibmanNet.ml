@@ -95,7 +95,7 @@ let run
     ?(req_http_method : Netcgi.http_method list = [ `GET; `HEAD; `POST ])
     ?(req_content_type : string list = [])
     ?(required_params : (string * spec) list = [])
-    (f : Netcgi.cgi -> unit)
+    (f : Netcgi.cgi -> 'a)
     : unit =
   let config = { config with
     Netcgi.permitted_http_methods = req_http_method;
@@ -106,7 +106,7 @@ let run
     ~output_type
     ~arg_store
     ~exn_handler
-    (fun cgi -> assert_arguments cgi required_params; f cgi)
+    (fun cgi -> assert_arguments cgi required_params; ignore (f cgi))
 ;;
 
 let process_command (prog : string) (args : string list) : string option =

@@ -1,8 +1,8 @@
 open BibmanNet
 ;;
 
-let main (cgi: Netcgi.cgi) : unit =
-  ignore (redirect_to_script cgi "../script/catalog" [ "wish_book"; ])
+let main (cgi: Netcgi.cgi) =
+  redirect_to_script cgi "../script/catalog" [ "wish_book"; ]
 ;;
 
 let () = run

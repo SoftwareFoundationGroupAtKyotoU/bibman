@@ -12,7 +12,7 @@
 open BibmanNet
 ;;
 
-let main (cgi: Netcgi.cgi) : unit =
+let main (cgi: Netcgi.cgi) =
   let book_ids =
     BatList.sort_unique
       String.compare

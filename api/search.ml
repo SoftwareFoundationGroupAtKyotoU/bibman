@@ -19,7 +19,7 @@
 open BibmanNet
 ;;
 
-let main (cgi: Netcgi.cgi) : unit =
+let main (cgi: Netcgi.cgi) =
   let queries =
     BatList.sort_unique
       String.compare

@@ -3,7 +3,7 @@ open BibmanNet
 
 (* TODO: SESSION MANAGE *)
 
-let main (cgi: Netcgi.cgi) : unit =
+let main (cgi: Netcgi.cgi) =
   let arg_value = cgi # argument_value in
   let action = arg_value "action" in
   let account = arg_value "account" in
