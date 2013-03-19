@@ -4,8 +4,8 @@ open Config_file
 let group = new group
 ;;
 
-let root_dir =
-  new string_cp ~group ["root_dir"; ] ""
+let root_path =
+  new string_cp ~group ["root_path"; ] ""
     "root path with path separator (i.e., '/')."
 ;;
 
@@ -207,7 +207,12 @@ let () = read_script group
 ;;
 
 
-let root_dir = root_dir # get
+let root_path =
+  let module PathGen = BatPathGen.OfString in
+  let path =
+    PathGen.Operators.(/:) (PathGen.of_string root_path # get) ""
+  in
+  PathGen.to_string path
 ;;
 
 let lending_days = lending_days # get

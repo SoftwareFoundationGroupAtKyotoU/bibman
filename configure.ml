@@ -1,5 +1,5 @@
-(* root path with path separator (i.e., '/'). *)
-root_dir = "/"
+(* root path of uri. *)
+root_path = "/~webserver/"
 
 (* days for lending. *)
 lending_days = 30

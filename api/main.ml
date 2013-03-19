@@ -25,8 +25,17 @@ let main (cgi : Netcgi.cgi) (account : string) =
   cgi # out_channel # output_string html
 ;;
 
-let () = run
+let () =
+  let error_handler (cgi : Netcgi.cgi) =
+    cgi # out_channel # output_string "You aren't certificated?";
+    cgi # set_header
+      ~status:`See_other
+      ~content_type:MimeType.text
+      ~fields:[("Location", [ Config.root_path; ]); ]
+      ()
+  in
+  run
   ~req_http_method:[ `GET; `HEAD ]
   ~req_content_type:[ MimeType.html; ]
-  (certification_check_wrapper main)
+  (certification_check_wrapper ~error_handler main)
 ;;

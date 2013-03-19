@@ -13,7 +13,7 @@ let main (cgi : Netcgi.cgi) =
   match m with
   | None -> raise (BibmanNet.Invalid_argument "account")
   | Some session_id -> begin
-    set_certification_info ~account ~session_id ~cookie_path:Config.root_dir cgi;
+    set_certification_info ~account ~session_id ~cookie_path:Config.root_path cgi;
     cgi # out_channel # output_string account;
     cgi # out_channel # commit_work ()
   end

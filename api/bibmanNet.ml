@@ -177,7 +177,7 @@ let set_certification_info =
 ;;
 
 let certification_check_wrapper =
-  let certificate_error (cgi : Netcgi.cgi) =
+  let error_handler (cgi : Netcgi.cgi) =
     cgi # out_channel # output_string "You aren't certificated";
     cgi # set_header
       ~status:`Forbidden
@@ -185,7 +185,11 @@ let certification_check_wrapper =
       ()
   in
 
-  fun (f : Netcgi.cgi -> string (* account *) -> 'a) (cgi : Netcgi.cgi) ->
+  fun
+    ?(error_handler : Netcgi.cgi -> unit = error_handler)
+    (f : Netcgi.cgi -> string (* account *) -> 'a)
+    (cgi : Netcgi.cgi)
+  ->
     let get_cookie = cgi # environment # cookie in
     let open BatOption.Monad in
     let m =
@@ -211,5 +215,5 @@ let certification_check_wrapper =
     let m = bind m (fun account -> Some (f cgi account)) in
     match m with
     | Some _ -> ()
-    | None -> certificate_error cgi
+    | None -> error_handler cgi
 ;;
