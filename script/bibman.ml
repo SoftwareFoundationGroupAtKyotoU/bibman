@@ -20,7 +20,7 @@ let rec check_args (schema : spec list) (args : string list) : bool =
   in
   match schema, args with
   | [], [] -> true
-  | `String _ :: ts, str :: ta -> check_args ts ta
+  | `String _ :: ts, _ :: ta -> check_args ts ta
   | `NonEmpty name :: ts, str :: ta -> begin
     if BatString.is_empty str then
       error (Printf.sprintf "The %s must be non-empty" name)

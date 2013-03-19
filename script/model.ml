@@ -25,7 +25,7 @@ let exists l = not (BatList.is_empty l)
 ;;
 let first = function
   | [] -> None
-  | x::xs -> Some x
+  | x::_ -> Some x
 ;;
 
 
@@ -153,7 +153,7 @@ let authors_of_string authors =
 ;;
 
 (** publisher **)
-let rec find_publisher dbh publisher =
+let find_publisher dbh publisher =
   match PGSQL(dbh) "SELECT publisher_id FROM publisher WHERE name = $publisher" with
   | [] -> None
   | [pid] -> Some pid

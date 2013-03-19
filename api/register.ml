@@ -34,16 +34,6 @@ let main (cgi: Netcgi.cgi) : unit =
   )
 ;;
 
-  (* let publishers = *)
-  (*   match process_command "../script/catalog" [ "publisher"; ] with *)
-  (*   | None -> assert false *)
-  (*   | Some json -> begin *)
-  (*     let module JSON = Yojson.Basic in *)
-  (*     List.map JSON.Util.to_string *)
-  (*       (JSON.Util.to_list (JSON.from_string json)) *)
-  (*   end *)
-  (* in *)
-
 let () = run
   ~req_http_method:[ `POST; ]
   ~req_content_type:[ MimeType.form_encoded; ]

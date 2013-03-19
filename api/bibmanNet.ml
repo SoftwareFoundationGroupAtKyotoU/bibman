@@ -67,7 +67,7 @@ let assert_arguments =
 let exception_handler =
   let set_env env status content =
     env # set_output_header_fields [
-      ("Content-type", "text/plain");
+      ("Content-type", MimeType.text);
     ];
     env # set_status status;
     env # send_output_header ();
@@ -126,7 +126,7 @@ let process_command (prog : string) (args : string list) : string option =
     let _, status = Unix.waitpid [ Unix.WUNTRACED ] pid in
     match status with
     | Unix.WEXITED 0 -> Some res
-    | _ -> None
+    | Unix.WEXITED _ | Unix.WSIGNALED _ | Unix.WSTOPPED _ -> None
 ;;
 
 let redirect_to_script
