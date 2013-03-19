@@ -567,6 +567,8 @@ Bibman.ListStepUI = Bibman.Class({
     $a.click(function() {
       if ($a.attr('href')) {
         self._callbacks.fire({ target: $a.get(0), value: page_idx});
+        window.location.hash = self._hash_link;
+        window.location.hash = '';
       }
     });
   },
@@ -586,7 +588,7 @@ Bibman.ListStepUI = Bibman.Class({
       $a.removeAttr('href');
     }
     else {
-      $a.attr('href', '#' + this._hash_link);
+      $a.attr('href', '#');
     }
   },
 
