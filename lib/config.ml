@@ -13,6 +13,27 @@ let number_of_history_records =
     "number of history records to be output."
 ;;
 
+
+let session_period_seconds =
+  new int_cp ~group ["session"; "period"; "seconds"; ] 0 "seconds."
+;;
+
+let session_period_minutes =
+  new int_cp ~group ["session"; "period"; "minutes"; ] 0 "minutes."
+;;
+
+let session_period_hours =
+  new int_cp ~group ["session"; "period"; "hours"; ] 0 "hours."
+;;
+
+let session_period_days =
+  new int_cp ~group ["session"; "period"; "days"; ] 0 "days."
+;;
+
+let session_salt =
+  new string_cp ~group ["session"; "salt"; ] "" "salt to generate session id."
+;;
+
 let kind_values =
   new list_cp string_wrappers ~group ["kind"; "values"; ] [] "options."
 ;;
@@ -126,6 +147,23 @@ let lending_days = lending_days # get
 
 let number_of_history_records = Int64.of_int (number_of_history_records # get)
 ;;
+
+
+let session_period_seconds = session_period_seconds # get
+;;
+
+let session_period_minutes = session_period_minutes # get
+;;
+
+let session_period_hours = session_period_hours # get
+;;
+
+let session_period_days = session_period_days # get
+;;
+
+let session_salt = session_salt # get
+;;
+
 
 let kind_values = kind_values # get
 ;;

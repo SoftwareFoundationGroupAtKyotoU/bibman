@@ -16,7 +16,7 @@
         position: relative;
       }
       #contents {
-        height: 100px;
+        height: 130px;
         width: 40%;
         min-width: 300px;
         border: 3px solid skyblue;
@@ -32,10 +32,20 @@
   <body>
     <div id="contents">
       <form id="login">
-        <div style="margin-top: 25px; margin-bottom: 3px;">
-          <span style="">アカウント</span>
-          <input type="text" id="account" value="" style="vertical-align: text-top" />
-        </div>
+        <table style="margin-top: 25px; margin-bottom: 3px; margin-left: auto; margin-right: auto">
+          <tr>
+            <th>アカウント</th>
+            <td>
+              <input type="text" id="account" value="" style="vertical-align: text-top" />
+            </td>
+          </tr>
+          <tr>
+            <th>パスワード</th>
+            <td>
+              <input type="password" id="password" value="" style="vertical-align: text-top" />
+            </td>
+          </tr>
+        </table>
         <input type="submit" value="ログイン" />
       </form>
     </div>

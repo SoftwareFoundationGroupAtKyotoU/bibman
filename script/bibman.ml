@@ -193,3 +193,9 @@ let user_id_or_raise dbh account =
   | None -> raise (Invalid_argument "account")
   | Some uid -> uid
 ;;
+
+let encrypt password =
+  let hash = Cryptokit.Hash.sha256 () in
+  hash # add_string password;
+  hash # result
+;;

@@ -146,3 +146,67 @@ let redirect_to_script
   cgi # out_channel # commit_work ();
   res
 ;;
+
+
+(* CERTIFICATION *)
+
+let cookie_login_account = "loginas"
+;;
+
+let cookie_secret_certification_key = "sck"
+;;
+
+let set_certification_key
+    (cgi : Netcgi.cgi)
+    (account : string)
+    (session_id : string)
+    : unit =
+  cgi # set_header
+    ~set_cookies:[
+      (Netcgi.Cookie.make
+         ~max_age:0
+         ~path:"/api/"
+         cookie_login_account
+         account);
+      (Netcgi.Cookie.make
+         ~max_age:0
+         ~path:"/api/"
+         cookie_secret_certification_key
+         session_id);
+    ] ()
+;;
+
+let certification_check_wrapper =
+  let certificate_error (cgi : Netcgi.cgi) =
+    cgi # out_channel # output_string "You aren't certificated";
+    cgi # set_header
+      ~status:`Forbidden
+      ~content_type:MimeType.text
+      ()
+  in
+
+  fun (f : Netcgi.cgi -> 'a) (cgi : Netcgi.cgi) ->
+    let get_cookie = cgi # environment # cookie in
+    let open BatOption.Monad in
+    let m =
+      try Some (
+        get_cookie cookie_login_account,
+        get_cookie cookie_secret_certification_key
+      )
+      with
+        Not_found -> None
+    in
+    let m = bind m
+      (fun (account_cookie, session_id_cookie) ->
+        let account = Netcgi.Cookie.value account_cookie in
+        let session_id = Netcgi.Cookie.value session_id_cookie in
+        process_command
+          "../script/user"
+          [ "certificate"; account; session_id; ]
+      )
+    in
+    let m = bind m (fun _ -> Some (f cgi)) in
+    match m with
+    | Some _ -> ()
+    | None -> certificate_error cgi
+;;

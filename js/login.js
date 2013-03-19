@@ -3,29 +3,28 @@
 $(document).ready(function () {
 
   var $account = $('#account');
-
-  function fail() {
-    window.alert('アカウント名が不正です．');
-  }
-
-  function succeed(account) {
-    document.location = './~' + account + '/';
-  }
+  var $password = $('#password');
 
   $('#login').bind('submit', function () {
     var account = $account.val();
+    var password = $password.val();
 
     if (account === '') {
       window.alert('アカウント名が入力されていません．');
     }
+    else if (password === '') {
+      window.alert('パスワードが入力されていません．');
+    }
     else {
       $.ajax({
-        data: { account: account },
+        data: { account: account, password: password },
         dataType: 'text',
-        error: fail,
-        success: succeed,
-        type: 'GET',
-        url: './api/account-cert.cgi'
+        type: 'POST',
+        url: './api/account_cert.cgi'
+      }).done(function (account) {
+        document.location = './~' + account + '/';
+      }).fail(function () {
+        window.alert('アカウント名が不正です．');
       });
     }
 

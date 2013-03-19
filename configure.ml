@@ -4,6 +4,19 @@ lending_days = 30
 (* number of history records to be output. *)
 number_of_history_records = 3
 
+session = {
+  (* period for preserving session. *)
+  period = {
+    seconds = 0
+    minutes = 0
+    hours = 0
+    days = 1
+  }
+
+  (* salt to generate session id. *)
+  salt = "f8fjivmrgvh9qb[k]ffefk~jf]fejfffj`@[@aaffcf24fjv"
+}
+
 kind = {
   (* options. *)
   values = ["消耗品"; "図書"; "その他"]

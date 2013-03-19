@@ -114,7 +114,7 @@ let user =
   let body dbh account password =
     if account_exists dbh account then added_already "Account" account
     else
-      let password = encrypt password in
+      let password = Bibman.encrypt password in
       PGSQL(dbh)
         "INSERT INTO lab8_user (account, password) VALUES ($account, $password)"
   in

@@ -169,25 +169,6 @@ let find_user_id dbh account =
   first uids
 ;;
 
-let encrypt password =
-  let hash = Cryptokit.Hash.sha256 () in
-  hash # add_string password;
-  hash # result
-;;
-
-(* let create_session_id account = *)
-(*   let Time = CalendarLib.Time in *)
-(*   let second = Time.Second.to_int (Time.to_second (Time.now ())) in *)
-(*   let salt = Config.salt in *)
-(*   let hash = Cryptokit.Hash.sha256 () in *)
-(*   hash # add_string account; *)
-(*   hash # add_byte second; *)
-(*   hash # add_string salt; *)
-(*   let res = hash # result in *)
-(*   (\* genpasswd *\) *)
-(*   String.map (fun c -> int_of_char *)
-(* ;; *)
-
 (** history **)
 type history =
   int32 *   (* book id *)
