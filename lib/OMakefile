@@ -1,0 +1,8 @@
+USE_OCAMLFIND = true
+
+OCAMLPACKS[] =
+	batteries
+	config-file
+
+clean:
+	rm -f ./*.o ./*.cmo ./*.cmx ./*.cmi ./*.cgi

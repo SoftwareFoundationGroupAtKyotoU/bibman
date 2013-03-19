@@ -20,7 +20,7 @@ $(document).ready(function () {
         data: { account: account, password: password },
         dataType: 'text',
         type: 'POST',
-        url: './api/account_cert.cgi'
+        url: './api/login.cgi'
       }).done(function (account) {
         document.location = './~' + account + '/';
       }).fail(function () {

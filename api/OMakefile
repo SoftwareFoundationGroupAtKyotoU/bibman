@@ -1,0 +1,41 @@
+.PHONY: all clean
+.DEFAULT: all
+
+USE_OCAMLFIND = true
+
+OCAMLPACKS[] =
+	unix
+	batteries
+	netcgi2
+	config-file
+	yojson
+
+OCAMLINCLUDES += ../lib
+
+COMMONS[] =
+	../lib/config
+	bibmanNet
+
+CGIS[] =
+	login
+	main
+	register
+	edit
+	history
+	lending
+	lend_book
+	my_book
+	search
+	wish_book
+
+DEPENDS[] =
+
+foreach(filename => ..., $(CGIS))
+	DEPENDS += $(OCamlProgram $(filename).cgi, $(COMMONS) $(filename))
+	export DEPENDS
+
+all: $(DEPENDS)
+	ln-or-cp main.cgi ../
+
+clean:
+	rm -f ./*.o ./*.cmo ./*.cmx ./*.cmi ./*.cgi ./*.opt

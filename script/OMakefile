@@ -1,0 +1,48 @@
+.PHONY: all clean
+.DEFAULT: all
+
+USE_OCAMLFIND = true
+
+OCAMLPACKS[] =
+	batteries
+	pgocaml
+	pgocaml.syntax
+	cryptokit
+	yojson
+	config-file
+	netstring
+
+OCAMLINCLUDES += ../lib
+
+OCAMLFINDFLAGS += -syntax camlp4o
+
+COMMONS[] =
+	../lib/config
+	model
+	bibman
+
+SCRIPTS[] =
+	add
+	catalog
+	edit
+	lending
+	my
+	search_book
+	user
+
+setenv(PGHOST, localhost)
+setenv(PGUSER, postgres)
+setenv(PGPASSWORD, postgres)
+setenv(PGDATABASE, bibman)
+
+DEPENDS[] =
+
+foreach(filename => ..., $(SCRIPTS))
+	DEPENDS += $(OCamlProgram $(filename), $(COMMONS) $(filename))
+	export DEPENDS
+
+all: $(DEPENDS)
+
+clean:
+	rm -f ./*.o ./*.cmo ./*.cmx ./*.cmi ./*.opt
+	rm -f add catalog edit lending my search_book
