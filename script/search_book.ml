@@ -4,7 +4,6 @@ let debug = Bibman.debug
 open Model
 ;;
 
-(* TODO: exclude wish-books *)
 let by_keywords =
   let hit keyword str = BatString.exists (String.lowercase str) keyword in
 

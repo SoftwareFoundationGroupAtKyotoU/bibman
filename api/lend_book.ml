@@ -1,8 +1,6 @@
 open BibmanNet
 ;;
 
-(* TODO: SESSION MANAGE *)
-
 let main (cgi: Netcgi.cgi) (account : string) =
   let arg_value = cgi # argument_value in
   let action = arg_value "action" in

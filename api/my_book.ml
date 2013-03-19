@@ -1,5 +1,3 @@
-(* TODO SESSION CHECK *)
-
 open BibmanNet
 ;;
 
