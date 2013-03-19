@@ -77,9 +77,17 @@ let wish_book =
         prerr_endline "The book has been registered already";
         raise (Bibman.Invalid_argument "book-id")
       | false ->
-        (* TODO: mail to staff *)
         PGSQL(dbh)
-          "INSERT INTO wish_book (book_id, user_id) VALUES ($bid, $uid)"
+          "INSERT INTO wish_book (book_id, user_id) VALUES ($bid, $uid)";
+        ignore (
+          Bibman.send_book_mail
+            dbh
+            bid
+            (fst Config.mail_staff)
+            ~address: (snd Config.mail_staff)
+            Config.wish_book_subject
+            Config.wish_book_content
+        )
     end
   in
 

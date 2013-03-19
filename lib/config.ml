@@ -61,6 +61,11 @@ let mail_sender =
     ("","") "name (in the first component) and address (in the second component) of mail sender."
 ;;
 
+let mail_staff =
+   new tuple2_cp string_wrappers string_wrappers ~group ["mail"; "staff"]
+    ("","") "name and address of staff."
+;;
+
 let lending_subject =
   new string_cp ~group ["mail"; "lending"; "subject"; ] ""
     "subject of the mail for lending notifications."
@@ -76,19 +81,20 @@ let lending_content =
 \t$l: location\n"
 ;;
 
+let purchase_subject =
+  new string_cp ~group ["mail"; "purchase"; "subject"; ] "" "Same as lending."
+;;
+
+let purchase_content =
+  new string_cp ~group ["mail"; "purchase"; "content"; ] "" "Same as lending"
+;;
+
 let wish_book_subject =
-  new string_cp ~group ["mail"; "wish_book"; "subject"; ] ""
-    "subject of the mail for wish-book notifications."
+  new string_cp ~group ["mail"; "wish_book"; "subject"; ] "" "Same as lending."
 ;;
 
 let wish_book_content =
-  new string_cp ~group ["mail"; "wish_book"; "content"; ] ""
-"content of the mail for wish-book notifications. Each alphabet following $ is replaced with information of a book.\n\
-\t$t: title\n\
-\t$a: author names\n\
-\t$p: publisher\n\
-\t$y: publisher year\n\
-\t$l: location\n"
+  new string_cp ~group ["mail"; "wish_book"; "content"; ] "" "Same as lending"
 ;;
 
 let db_host = new string_cp ~group ["database"; "host"; ] ""
@@ -189,10 +195,19 @@ let mail_domain = mail_domain # get
 let mail_sender = mail_sender # get
 ;;
 
+let mail_staff = mail_staff # get
+;;
+
 let lending_subject = lending_subject # get
 ;;
 
 let lending_content = lending_content # get
+;;
+
+let purchase_subject = purchase_subject # get
+;;
+
+let purchase_content = purchase_content # get
 ;;
 
 let wish_book_subject = wish_book_subject # get

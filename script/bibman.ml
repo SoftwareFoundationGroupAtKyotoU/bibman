@@ -159,6 +159,7 @@ let send_book_mail
     dbh
     (bid : int32)
     (account : string)
+    ?(address = Printf.sprintf "%s@%s" account Config.mail_domain)
     (subject : string)
     (content : string)
   : bool =
@@ -177,10 +178,9 @@ let send_book_mail
         | x -> x)
         content
     in
-    let mail_address = Printf.sprintf "%s@%s" account Config.mail_domain in
     let message = Netsendmail.compose
       ~from_addr: Config.mail_sender
-      ~to_addrs:  [account, mail_address]
+      ~to_addrs:  [account, address]
       ~subject:   subject
       (Buffer.contents buf)
     in

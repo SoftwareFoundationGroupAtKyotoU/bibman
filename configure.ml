@@ -40,7 +40,10 @@ mail = {
 
   (* name (in the first component) and address (in the second component) of
      mail sender. *)
-  sender = ("admin", "admin@fos.kuis.kyoto-u.ac.jp")
+  sender = ("admin", "admin@...")
+
+  (* name and address of staff. *)
+  staff = ("staff", "staff@...")
 
   lending = {
     (* subject of the mail for lending notifications. *)
@@ -56,7 +59,13 @@ mail = {
     content = ""
   }
 
-  (* same as lending. *)
+  (* same as lending except that this settings are for purchase  . *)
+  purchase = {
+    subject = ""
+    content = ""
+  }
+
+  (* same as lending except that this settings are for wish-book registration of books. *)
   wish_book = {
     subject = ""
     content = ""

@@ -63,7 +63,7 @@ let purchase =
       ignore (
         Bibman.send_book_mail
           dbh bid account
-          Config.wish_book_subject Config.wish_book_content
+          Config.purchase_subject Config.purchase_content
       )
     end
   in
