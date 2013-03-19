@@ -1,13 +1,29 @@
 open BibmanNet
 ;;
 
-(* TODO: check value for kind, location and so on *)
+let check_item =
+  let item_to_range = [
+    ("location", Config.location_values);
+    ("kind", Config.kind_values);
+    ("status", Config.status_values);
+  ]
+  in
+
+  fun (item : string) (value : string) ->
+    let res =
+      try List.exists ((=) value) (List.assoc item item_to_range) with
+      | Not_found -> true
+    in
+    if not res then
+      raise (BibmanNet.Invalid_argument "value")
+;;
 
 let main (cgi: Netcgi.cgi) _ : unit =
   let arg_value = cgi # argument_value in
   let book_id = arg_value "id" in
   let item = arg_value "item" in
   let value = arg_value "value" in
+  check_item item value;
   let success =
     redirect_to_script
       cgi
