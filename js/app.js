@@ -391,7 +391,6 @@ Bibman.UI.set_lending_event_handler = (function() {
       $target.submit(function() {
         Bibman.API.lend_book({
           action: action,
-          account: Bibman.user.account(),
           id: id
         });
 
@@ -713,13 +712,17 @@ Bibman.user = undefined;
 
 Bibman.init = (function() {
   var init = function(account) {
-    Bibman.user = { account: function() { return account; } };
 
     var $dfd = $.Deferred();
     $(document).ready($dfd.resolve);
+
     $.when(Bibman.API.config(undefined), $dfd).done(
       function(config_res) {
         Bibman.config = config_res[0];
+
+        var account = $('#account').val();
+        Bibman.user = { account: function() { return account; } };
+
         init.load_callbacks.fire();
       }
     );
@@ -979,7 +982,7 @@ Bibman.init.load_callbacks.add(function() {
   }
 
   function update_my_lists() {
-    Bibman.API.my_book({ account: Bibman.user.account() })
+    Bibman.API.my_book()
       .done(function(mydata) {
         list_books(mydata.lending, $('#my-lending'));
         list_books(mydata.reservation, $('#my-reservation'));

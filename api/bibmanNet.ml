@@ -156,24 +156,24 @@ let cookie_login_account = "loginas"
 let cookie_secret_certification_key = "sck"
 ;;
 
-let set_certification_key
+let set_certification_info =
+  let cookie name value path =
+    let cookie = Netcgi.Cookie.make ~path name value in
+    Netcgi.Cookie.set_max_age cookie None;
+    cookie
+  in
+
+  fun
+    ~(account : string)
+    ~(session_id : string)
+    ~(cookie_path : string)
     (cgi : Netcgi.cgi)
-    (account : string)
-    (session_id : string)
-    : unit =
-  cgi # set_header
-    ~set_cookies:[
-      (Netcgi.Cookie.make
-         ~max_age:0
-         ~path:"/api/"
-         cookie_login_account
-         account);
-      (Netcgi.Cookie.make
-         ~max_age:0
-         ~path:"/api/"
-         cookie_secret_certification_key
-         session_id);
-    ] ()
+  ->
+    cgi # set_header
+      ~set_cookies:[
+        (cookie cookie_login_account account cookie_path);
+        (cookie cookie_secret_certification_key session_id cookie_path);
+      ] ()
 ;;
 
 let certification_check_wrapper =
@@ -185,7 +185,7 @@ let certification_check_wrapper =
       ()
   in
 
-  fun (f : Netcgi.cgi -> 'a) (cgi : Netcgi.cgi) ->
+  fun (f : Netcgi.cgi -> string (* account *) -> 'a) (cgi : Netcgi.cgi) ->
     let get_cookie = cgi # environment # cookie in
     let open BatOption.Monad in
     let m =
@@ -200,12 +200,15 @@ let certification_check_wrapper =
       (fun (account_cookie, session_id_cookie) ->
         let account = Netcgi.Cookie.value account_cookie in
         let session_id = Netcgi.Cookie.value session_id_cookie in
-        process_command
-          "../script/user"
-          [ "certificate"; account; session_id; ]
+        let m =
+          process_command
+            Config.script_user
+            [ "certificate"; account; session_id; ]
+        in
+        bind m (fun _ -> Some account)
       )
     in
-    let m = bind m (fun _ -> Some (f cgi)) in
+    let m = bind m (fun account -> Some (f cgi account)) in
     match m with
     | Some _ -> ()
     | None -> certificate_error cgi

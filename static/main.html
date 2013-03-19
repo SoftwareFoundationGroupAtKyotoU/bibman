@@ -131,16 +131,17 @@
     </script>
     <script type="text/javascript" src="./../js/app.js" charset="utf-8"></script>
     <script type="text/javascript" charset="utf-8">
-      Bibman.init('$u');
+      Bibman.init();
     </script>
   </head>
   <body style="padding-bottom: 100px">
+    <form><input id="account" type="hidden" value="$u" /></form>
     <a id="top-anchor"></a>
     <div id="menu">
       <ul>
         <li onclick="Bibman.switch_tab('search-contents')">検索</li>
         <li onclick="Bibman.switch_tab('book-register')">書籍登録</li>
-        <li onclick="Bibman.switch_tab('my-page')"style="font-size: 1.2em;">$u</li>
+        <li onclick="Bibman.switch_tab('my-page')" style="font-size: 1.2em;">$u</li>
         <li style="float:right">管理</li>
       </ul>
     </div>
@@ -174,7 +175,7 @@
         </div>
       </div>
       <div id="book-search-list"></div>
-        <div class="list-step"></div>
+      <div class="list-step"></div>
     </div>
     <div id="book-register" class="contents" style="display: none">
       <h3>書籍登録</h3>
@@ -186,7 +187,6 @@
               <td>
                 <input id="book-register-isbn" type="text" class="text" data-item="isbn" style="width: 147px" />
                 <button id="book-register-search" type="button" style="width: 225px">Google Books から情報を取得</button>
-                </form>
               </td>
             </tr>
             <tr>
@@ -259,7 +259,6 @@
           </select>
       </div>
       <div id="wishbook-list"></div>
-    </div>
   </div>
   <div id="my-page" class="contents" style="display: none">
     <h3>貸出中</h3>

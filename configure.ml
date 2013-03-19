@@ -1,3 +1,6 @@
+(* root path with path separator (i.e., '/'). *)
+root_dir = "/"
+
 (* days for lending. *)
 lending_days = 30
 
@@ -84,13 +87,11 @@ database = {
 }
 
 script = {
-  (* directory where scripts are put *)
-  dir = "/home/webserver/public_html/script/"
-
-  file = {
-    search = "search_book"
-    my_book = "my"
-    ediit = "edit"
-    add = "add"
-  }
+  search = "search_book"
+  my_book = "my"
+  edit = "edit"
+  add = "add"
+  catalog = "catalog"
+  lending = "lending"
+  user = "user"
 }

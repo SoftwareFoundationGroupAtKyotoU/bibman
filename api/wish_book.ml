@@ -1,12 +1,12 @@
 open BibmanNet
 ;;
 
-let main (cgi: Netcgi.cgi) =
-  redirect_to_script cgi "../script/catalog" [ "wish_book"; ]
+let main (cgi: Netcgi.cgi) _ =
+  redirect_to_script cgi Config.script_catalog [ "wish_book"; ]
 ;;
 
 let () = run
   ~req_http_method:[`GET; `HEAD; ]
   ~req_content_type:[ MimeType.json; ]
-  main
+  (certification_check_wrapper main)
 ;;

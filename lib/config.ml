@@ -4,6 +4,11 @@ open Config_file
 let group = new group
 ;;
 
+let root_dir =
+  new string_cp ~group ["root_dir"; ] ""
+    "root path with path separator (i.e., '/')."
+;;
+
 let lending_days =
   new int_cp ~group ["lending_days"; ] 0 "days for lending."
 ;;
@@ -51,6 +56,7 @@ let location_values =
   new list_cp string_wrappers ~group ["location"; "values"; ] [] "options."
 ;;
 
+(* MAIL *)
 
 let mail_domain =
   new string_cp ~group ["mail"; "domain"; ] "" "mail domain."
@@ -97,6 +103,8 @@ let wish_book_content =
   new string_cp ~group ["mail"; "wish_book"; "content"; ] "" "Same as lending"
 ;;
 
+(* DATABASE *)
+
 let db_host = new string_cp ~group ["database"; "host"; ] ""
   "host name on which the database service is working"
 ;;
@@ -113,12 +121,35 @@ let db_database = new string_cp ~group ["database"; "name"; ] ""
   "name of the database to be connected"
 ;;
 
-let find_file name =
+(* SCRIPT *)
+let script_search = new string_cp ~group ["script"; "search"; ] "" ""
+;;
+
+let script_my_book = new string_cp ~group ["script"; "my_book"; ] "" ""
+;;
+
+let script_edit = new string_cp ~group ["script"; "edit"; ] "" ""
+;;
+
+let script_add = new string_cp ~group ["script"; "add"; ] "" ""
+;;
+
+let script_catalog = new string_cp ~group ["script"; "catalog"; ] "" ""
+;;
+
+let script_lending = new string_cp ~group ["script"; "lending"; ] "" ""
+;;
+
+let script_user = new string_cp ~group ["script"; "user"; ] "" ""
+;;
+
+
+let find_entity (exists : string -> bool) (name : string) =
   let module PathGen = BatPathGen.OfString in
   let (/:) = PathGen.Operators.(/:) in
   let rec iter cur_path =
     let path = PathGen.to_string (cur_path /: name) in
-    if Sys.file_exists path then Some path
+    if exists path then Some path
     else
       let parent_path =
         try Some (PathGen.parent cur_path) with Invalid_argument _ -> None
@@ -128,24 +159,55 @@ let find_file name =
       | Some parent_path -> iter parent_path
   in
   iter (PathGen.of_string (Sys.getcwd ()))
-
-let path =
-  try Sys.getenv "BIBMAN_CONFIG" with
-    Not_found -> begin
-      let filename = "configure.ml" in
-      match find_file filename with
-      | Some config_file -> config_file
-      | None ->
-        prerr_endline
-          (Printf.sprintf "Cannot file the configure file '%s'" filename);
-        exit 1
-    end
 ;;
 
-(* group # write path *)
-(* ;; *)
+let find_file (name : string) = find_entity Sys.file_exists name
+;;
 
-group # read ~no_default:true path
+let find_file_or_exit (name : string) =
+  match find_file name with
+  | Some path -> path
+  | None ->
+    prerr_endline
+      (Printf.sprintf "Cannot find the file '%s'" name);
+    exit 1
+;;
+
+let find_directory =
+  let exists path =
+    try Sys.is_directory path with
+    | Sys_error _ -> false
+  in
+
+  fun (name : string) ->
+    BatOption.Monad.bind
+      (find_entity exists name)
+      (fun dir_path -> (* with separator (/) *)
+        let module PathGen = BatPathGen.OfString in
+        let dir_path = PathGen.of_string dir_path in
+        Some (PathGen.to_string (PathGen.Operators.(/:) dir_path "")))
+;;
+
+let find_directory_or_exit dirname =
+  match find_directory dirname with
+  | Some dir -> dir
+  | None ->
+    prerr_endline
+      (Printf.sprintf "Cannot find the directory '%s' for scripts" dirname);
+    exit 1
+;;
+
+
+let read_script (group : Config_file.group) =
+  let path = find_file_or_exit "configure.ml" in
+  group # read ~no_default:true path
+;;
+
+let () = read_script group
+;;
+
+
+let root_dir = root_dir # get
 ;;
 
 let lending_days = lending_days # get
@@ -226,4 +288,36 @@ let db_password = db_password # get
 ;;
 
 let db_database = db_database # get
+;;
+
+
+let script_dir = find_directory_or_exit "script"
+;;
+
+let script_file_path filename = script_dir ^ (filename # get)
+;;
+
+let script_search = script_file_path script_search
+;;
+
+let script_my_book = script_file_path script_my_book
+;;
+
+let script_edit = script_file_path script_edit
+;;
+
+let script_add = script_file_path script_add
+;;
+
+let script_catalog = script_file_path script_catalog
+;;
+
+let script_lending = script_file_path script_lending
+;;
+
+let script_user = script_file_path script_user
+;;
+
+
+let static_dir = find_directory_or_exit "static"
 ;;

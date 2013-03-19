@@ -3,7 +3,7 @@ open BibmanNet
 
 (* TODO: check value for kind, location and so on *)
 
-let main (cgi: Netcgi.cgi) : unit =
+let main (cgi: Netcgi.cgi) _ : unit =
   let arg_value = cgi # argument_value in
   let book_id = arg_value "id" in
   let item = arg_value "item" in
@@ -12,11 +12,11 @@ let main (cgi: Netcgi.cgi) : unit =
     redirect_to_script
       cgi
       ~content_type:MimeType.text
-      "../script/edit"
+      Config.script_edit
       [ item; book_id; value; ]
   in
   if success && item = "status" && value = Config.status_purchase then
-    ignore (process_command "../script/edit" [ "purchase"; book_id; ])
+    ignore (process_command Config.script_edit [ "purchase"; book_id; ])
 ;;
 
 let () = run
@@ -28,5 +28,5 @@ let () = run
                       "location"; "kind"; "label"; "status"; ]);
     ("value", `Any);
   ]
-  main
+  (certification_check_wrapper main)
 ;;

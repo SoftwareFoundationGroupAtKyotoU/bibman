@@ -12,7 +12,7 @@
 open BibmanNet
 ;;
 
-let main (cgi: Netcgi.cgi) =
+let main (cgi: Netcgi.cgi) _ =
   let book_ids =
     BatList.sort_unique
       String.compare
@@ -20,7 +20,7 @@ let main (cgi: Netcgi.cgi) =
   in
   redirect_to_script
     cgi
-    "../script/lending"
+    Config.script_lending
     ([ "book-lending"; ] @ book_ids)
 ;;
 
@@ -28,5 +28,5 @@ let () = run
   ~req_http_method:[`GET; `HEAD; ]
   ~req_content_type:[ MimeType.json; ]
   ~required_params:[("id", `Int32); ]
-  main
+  (certification_check_wrapper main)
 ;;

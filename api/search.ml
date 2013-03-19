@@ -19,7 +19,7 @@
 open BibmanNet
 ;;
 
-let main (cgi: Netcgi.cgi) =
+let main (cgi: Netcgi.cgi) _ =
   let queries =
     BatList.sort_unique
       String.compare
@@ -27,7 +27,7 @@ let main (cgi: Netcgi.cgi) =
   in
   redirect_to_script
     cgi
-    "../script/search_book"
+    Config.script_search
     ([ "keyword"; ] @ queries)
 ;;
 
@@ -35,5 +35,5 @@ let () = run
   ~req_http_method:[`GET; `HEAD; ]
   ~req_content_type:[ MimeType.json; ]
   ~required_params:[("query", `NonEmpty); ]
-  main
+  (certification_check_wrapper main)
 ;;

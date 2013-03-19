@@ -29,7 +29,7 @@ let json_of_string_list l =
 ;;
 
 let main (cgi: Netcgi.cgi) : unit =
-  match process_command "../script/catalog" [ "publisher"; ] with
+  match process_command Config.script_catalog [ "publisher"; ] with
   | None -> cgi # set_header ~status:`Bad_request ()
   | Some publishers -> begin
     let json = `Assoc [

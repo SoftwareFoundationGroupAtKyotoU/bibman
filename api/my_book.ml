@@ -3,14 +3,13 @@
 open BibmanNet
 ;;
 
-let main (cgi: Netcgi.cgi) : unit =
+let main (cgi: Netcgi.cgi) (account : string) : unit =
   cgi # set_header ~content_type: MimeType.json ();
-  let account = cgi # argument_value "account" in
   let l = List.fold_left (fun acc target ->
     match acc with
     | None -> None
     | Some l -> begin
-      match process_command "../script/my" [ target; account ] with
+      match process_command Config.script_my_book [ target; account ] with
       | None -> None
       | Some json -> Some ((target, json) :: l)
     end)
@@ -33,6 +32,5 @@ let main (cgi: Netcgi.cgi) : unit =
 let () = run
   ~req_http_method:[`GET; `HEAD; ]
   ~req_content_type: [ MimeType.json; ]
-  ~required_params:[("account", `NonEmpty); ]
-  main
+  (certification_check_wrapper main)
 ;;

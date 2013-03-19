@@ -1,7 +1,7 @@
 open BibmanNet
 ;;
 
-let main (cgi: Netcgi.cgi) : unit =
+let main (cgi: Netcgi.cgi) (account : string) =
   let arg_value = cgi # argument_value in
   let isbn = arg_value "isbn" in
   let title = arg_value "title" in
@@ -10,7 +10,7 @@ let main (cgi: Netcgi.cgi) : unit =
   let publisher = arg_value "publisher" in
   ignore (
     process_command
-      "../script/add"
+      Config.script_add
       [ "entry"; isbn; title; authors; pyear; publisher; ]
   );
   let kind = arg_value "kind" in
@@ -23,14 +23,14 @@ let main (cgi: Netcgi.cgi) : unit =
       cgi
       ~content_type:MimeType.text
       ~output: (fun id -> bid := id; cgi # out_channel # output_string id)
-      "../script/add"
+      Config.script_add
       [ "book"; isbn; loc; kind; label; status; ]
   in
   if success then ignore (
     if status = Config.status_purchase then
-      process_command "../script/edit" [ "purchase"; !bid; ]
+      process_command Config.script_edit [ "purchase"; !bid; ]
     else
-      process_command "../script/add" [ "wish_book"; "t-sekiym"; !bid ] (* TODO: user account *)
+      process_command Config.script_add [ "wish_book"; account; !bid ]
   )
 ;;
 
@@ -48,5 +48,5 @@ let () = run
     ("status", `Symbol Config.status_values);
     ("location", `Symbol Config.location_values);
   ]
-  main
+  (certification_check_wrapper main)
 ;;

@@ -3,10 +3,9 @@ open BibmanNet
 
 (* TODO: SESSION MANAGE *)
 
-let main (cgi: Netcgi.cgi) =
+let main (cgi: Netcgi.cgi) (account : string) =
   let arg_value = cgi # argument_value in
   let action = arg_value "action" in
-  let account = arg_value "account" in
   let book_id = arg_value "id" in
   let args =
     if action = "return" then [ action; book_id; ]
@@ -15,7 +14,7 @@ let main (cgi: Netcgi.cgi) =
   redirect_to_script
     cgi
     ~content_type:MimeType.text
-    "../script/lending" args
+    Config.script_lending args
 ;;
 
 let () = run
@@ -23,8 +22,7 @@ let () = run
   ~req_content_type:[ MimeType.form_encoded; ]
   ~required_params:[
     ("action", `Symbol ["lend"; "return"; "reserve"; "cancel"]);
-    ("account", `NonEmpty);
     ("id", `Int32);
   ]
-  main
+  (certification_check_wrapper main)
 ;;
