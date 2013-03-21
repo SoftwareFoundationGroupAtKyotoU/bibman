@@ -10,21 +10,21 @@ let my_books dbh account (book_ids_of_uid : int32 -> int32 list) =
 let lending dbh = function
   | account :: [] ->
     my_books dbh account
-      (fun uid -> PGSQL(dbh) "SELECT book_id FROM lending WHERE user_id = $uid")
+      (fun uid -> PGSQL(dbh) "SELECT book_id FROM lending WHERE user_id = $uid ORDER BY start_date DESC")
   | _ -> assert false
 ;;
 
 let history dbh = function
   | account :: [] ->
     my_books dbh account
-      (fun uid -> PGSQL(dbh) "SELECT book_id FROM history WHERE user_id = $uid")
+      (fun uid -> PGSQL(dbh) "SELECT book_id FROM history WHERE user_id = $uid ORDER BY start_date DESC")
   | _ -> assert false
 ;;
 
 let reservation dbh = function
   | account :: [] ->
     my_books dbh account
-      (fun uid -> PGSQL(dbh) "SELECT book_id FROM reservation WHERE user_id = $uid")
+      (fun uid -> PGSQL(dbh) "SELECT book_id FROM reservation WHERE user_id = $uid ORDER BY reservation_date DESC")
   | _ -> assert false
 ;;
 
