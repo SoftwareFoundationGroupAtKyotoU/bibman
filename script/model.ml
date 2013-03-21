@@ -78,6 +78,25 @@ let isbn_exists dbh isbn =
   exists (PGSQL (dbh) "SELECT 1 FROM entry WHERE isbn = $isbn")
 ;;
 
+let normalize_isbn =
+  let correct isbn =
+    if Str.string_match (Str.regexp "[^0-9]") isbn 0 then
+      false
+    else
+      let len = String.length isbn in
+      if len = 10 then true
+      else if len = 13 then
+        let prefix = String.sub isbn 0 3 in
+        prefix = "978" or prefix = "979"
+      else false
+  in
+
+  fun (isbn : string) ->
+    let isbn = BatString.trim isbn in
+    let isbn = Str.global_replace (Str.regexp "-") "" isbn in
+    if correct isbn then Some isbn else None
+;;
+
 let book_info_of_book_id dbh id =
   match first (PGSQL(dbh) "SELECT * FROM book WHERE book_id = $id") with
   | None -> None

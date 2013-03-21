@@ -34,9 +34,10 @@ let entry =
 
   fun dbh -> function
   | isbn :: title :: authors :: pyear :: publisher :: [] -> begin
-    match authors_of_string authors with
-    | None -> raise (Bibman.Invalid_argument "authors")
-    | Some authors ->      
+    match authors_of_string authors, normalize_isbn isbn with
+    | None, _ -> raise (Bibman.Invalid_argument "authors")
+    | _, None -> raise (Bibman.Invalid_argument "isbn")
+    | Some authors, Some isbn ->
       body dbh isbn title authors (Int32.of_string pyear) publisher;
       None
   end
@@ -60,8 +61,11 @@ let book =
   in
 
   fun dbh -> function
-  | isbn :: loc :: kind :: label :: status :: [] ->
-    Some (body dbh isbn loc kind label status)
+  | isbn :: loc :: kind :: label :: status :: [] -> begin
+    match normalize_isbn isbn with
+    | None -> raise (Bibman.Invalid_argument "isbn")
+    | Some isbn -> Some (body dbh isbn loc kind label status)
+  end
   | _ -> assert false
 ;;
 
