@@ -132,7 +132,7 @@ html {
     padding-right: 10px;
 }
 
-.book-list-expand > img {
+.book-list .edit-icon img {
     width: 12px;
     height: 12px;
     cursor: pointer;

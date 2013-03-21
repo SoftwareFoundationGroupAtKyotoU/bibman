@@ -93,6 +93,7 @@ script = {
   my_book = "my"
   edit = "edit"
   add = "add"
+  remove = "remove"
   catalog = "catalog"
   lending = "lending"
   user = "user"

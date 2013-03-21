@@ -139,6 +139,9 @@ let script_edit = new string_cp ~group ["script"; "edit"; ] "" ""
 let script_add = new string_cp ~group ["script"; "add"; ] "" ""
 ;;
 
+let script_remove = new string_cp ~group ["script"; "remove"; ] "" ""
+;;
+
 let script_catalog = new string_cp ~group ["script"; "catalog"; ] "" ""
 ;;
 
@@ -331,6 +334,9 @@ let script_edit = script_file_path script_edit
 ;;
 
 let script_add = script_file_path script_add
+;;
+
+let script_remove = script_file_path script_remove
 ;;
 
 let script_catalog = script_file_path script_catalog

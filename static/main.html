@@ -43,9 +43,22 @@
   <li class="book-item" data-book-id="{{ book.id }}">
     <table>
       <tr>
-        <td class="expand">
-          <img alt="詳細" title="詳細" src="./../images/fold.png" />
-          <img class="display-none" alt="詳細" title="詳細" src="./../images/unfold.png" />
+        <td style="display:inline" class="edit-icon">
+          <table style="display:inline">
+            <tr style="display:inline">
+              <td class="expand">
+                <img alt="詳細" title="詳細" src="./../images/fold.png" />
+                <img class="display-none" alt="詳細" title="詳細" src="./../images/unfold.png" />
+              </td>
+            </tr>
+            {{#if ../option.removable }}
+              <tr>
+                <td>
+                  <img class="remove" alt="削除" title="削除" src="./../images/batsu.png" />
+                </td>
+              </tr>
+            {{/if}}
+          </table>
         </td>
         <td class="item">
           <div class="book-description-short" style="font-size: 1.3em" title="タイトル">

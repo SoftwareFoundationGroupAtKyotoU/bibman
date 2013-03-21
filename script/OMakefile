@@ -23,6 +23,7 @@ COMMONS[] =
 
 SCRIPTS[] =
 	add
+	remove
 	catalog
 	edit
 	lending

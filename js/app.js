@@ -126,7 +126,8 @@ Bibman.API.ROOT = './../api/';
         dataType: 'json',
         type: api.type,
         url: Bibman.API.ROOT + api.url,
-        traditional: true
+        traditional: true,
+        data: {}
       },
       api.settings || {}
     );
@@ -139,7 +140,7 @@ Bibman.API.ROOT = './../api/';
       opt_settings = opt_settings || {};
 
       var settings = _.clone(default_settings);
-      settings.data = data;
+      _.extend(settings.data, data);
       _.extend(settings, opt_settings);
 
       var error = settings.error;
@@ -160,7 +161,9 @@ Bibman.API.ROOT = './../api/';
     { name: 'edit_book', url: 'edit.cgi', type: 'POST',
       settings: { dataType: 'text' }
     },
-    { name: 'wishbook', url: 'wish_book.cgi', type: 'GET' },
+    { name: 'wishbook', url: 'wish_book.cgi', type: 'GET',
+      settings: { data: { action: 'list' } }
+    },
     { name: 'register_book', url: 'register.cgi', type: 'POST' },
     { name: 'lend_book', url: 'lend_book.cgi', type: 'POST',
       settings: { dataType: 'text' }
@@ -168,6 +171,9 @@ Bibman.API.ROOT = './../api/';
     { name: 'my_book', url: 'my_book.cgi', type: 'GET' },
     { name: 'add', url: 'add.cgi', type: 'POST',
       settings: { dataType: 'text' }
+    },
+    { name: 'remove_wishbook', url: 'wish_book.cgi', type: 'POST',
+      settings: { data: { action: 'remove' }, dataType: 'text' }
     }
   ].forEach(register_api);
 })();
@@ -422,7 +428,6 @@ Bibman.UI.set_lending_event_handler = (function() {
 Bibman.BookList.UI = Bibman.Class({
   _constructor: function(booklist, booklist_template, template_option) {
     this._booklist = booklist;
-    if (this._booklist.count() === 0) return null;
 
     this._booklist_template = booklist_template;
     this._template_option = template_option || {};
@@ -884,6 +889,16 @@ Bibman.init.load_callbacks.add(function() {
   }
 
   /* wish-booklist */
+  function remove_book_from_wish_book(id, booklist, elements, drawer) {
+    booklist.remove(id);
+    if (booklist.count() === 0) {
+      elements.hide();
+    }
+    else {
+      drawer.list();
+    }
+  }
+
   function set_purchase_event_handler(booklist, drawer, elements) {
     var purchase = function(target, val) {
       return $(target).data('item') === 'status' &&
@@ -904,29 +919,32 @@ Bibman.init.load_callbacks.add(function() {
       var id = $(e.target).parents('.book-item').data('book-id');
 
       Bibman.download_tex(id);
-
-      booklist.remove(id);
-      if (booklist.count() === 0) {
-        elements.hide();
-      }
-      else {
-        drawer.list();
-      }
+      remove_book_from_wish_book(id, booklist, elements, drawer);
     });
+  }
+
+  function remove_event_handler($target, booklist, elements, drawer) {
+    if (!window.confirm('ほしい本リストから削除します．よろしいですか？')) return;
+
+    var id = $target.parents('.book-item').data('book-id');
+    Bibman.API.remove_wishbook({ id: id })
+      .done(function() {
+        remove_book_from_wish_book(id, booklist, elements, drawer);
+      })
+      .fail(function() {
+        window.alert('ほしい本の削除に失敗しました．');
+      });
   }
 
   Bibman.API.wishbook().done(function(result) {
     var booklist = new Bibman.BookList(Bibman.user, { books: result });
-    if (booklist.count() === 0) {
-      return;
-    }
 
     var $sort = $('#wishbook-sort');
     var $list = $('#wishbook-list');
 
     var drawer = new Bibman.BookList.UI.SortDrawer(
       booklist,
-      { deny_lending: true},
+      { deny_lending: true, removable: true },
       { $list: $list, $sort: $sort }
     );
 
@@ -937,15 +955,28 @@ Bibman.init.load_callbacks.add(function() {
       hide: function() { Bibman.UI.hide($list, $sort); }
     };
 
-    elements.show();
-    drawer.list();
-
     set_purchase_event_handler(booklist, drawer, elements);
+
+    $list.click(function(e) {
+      var $target = $(e.target);
+      if ($target.hasClass('remove')) {
+        remove_event_handler($target, booklist, elements, drawer);
+        return false;
+      }
+    });
 
     $('#book-register-form').submit(function (e) {
       register_event_handler(e, booklist, drawer, elements);
       return false;
     });
+
+    if (booklist.count() === 0) {
+      elements.hide();
+    }
+    else {
+      elements.show();
+      drawer.list();
+    }
   });
 
   /* Book Search by external API */
