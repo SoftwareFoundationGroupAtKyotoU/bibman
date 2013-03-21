@@ -194,7 +194,7 @@ Bibman.API.ROOT = './../api/';
     return api.apply(this, arguments).done(function() {
       Bibman.API.lending({ id: data.id }).done(function(arr) {
         Bibman.API.lend_book.lending_callbacks.fire(
-          data.id, arr[0]
+          data.id, arr[0] || null
         );
       });
     });
@@ -210,11 +210,21 @@ Bibman.BookList = Bibman.Class({
 
     this._user = user;
     this.books = books_info.books;
-    this.lendings = books_info.lendings || [];
-    this.histories = books_info.histories || [];
+    this._lending_hash = {};
+    this._history_hash = {};
 
     this.books.forEach(_.bind(this._trans_book, this));
-    this.lendings.forEach(_.bind(this._trans_lending, this));
+
+    var self = this;
+
+    (books_info.lendings || []).forEach(function (lending) {
+      self._trans_lending(lending);
+      self._lending_hash[lending.id] = lending;
+    });
+
+    (books_info.histories || []).forEach(function (history) {
+      self._history_hash[history.id] = history.history;
+    });
   },
 
   _trans_book: function(book) {
@@ -265,25 +275,32 @@ Bibman.BookList = Bibman.Class({
 
   remove: function(id) {
     this._remove(this.books, id);
-    this._remove(this.lendings, id);
-    this._remove(this.histories, id);
+    delete this._lending_hash[id];
+    delete this._history_hash[id];
   },
 
   unshift_book: function(book) {
     this.books.unshift(book);
   },
 
-  update_lending: function(lending) {
-    this._trans_lending(lending);
+  update_lending: function(lending, id) {
+    if (lending === null) {
+      delete this._lending_hash[id];
+      return {};
+    }
+    else {
+      this._trans_lending(lending);
+      this._lending_hash[lending.id] = lending;
+      return lending;
+    }
+  },
 
-    var self = this;
-    this.lendings.forEach(function (pre_lending, idx) {
-      if (pre_lending.id === lending.id) {
-        self.lendings[idx] = lending;
-      }
-    });
+  lending: function(id) {
+    return this._lending_hash[id];
+  },
 
-    return lending;
+  history: function(id) {
+    return this._history_hash[id];
   }
 });
 
@@ -442,18 +459,6 @@ Bibman.BookList.UI = Bibman.Class({
     this._edit_complete_callbacks = $.Callbacks();
     this._edit_fail_callbacks = $.Callbacks();
     this._edit_success_callbacks = $.Callbacks();
-
-    var self = this;
-
-    this._lending_hash = {};
-    this._booklist.lendings.forEach(function (lending) {
-      self._lending_hash[lending.id] = lending;
-    });
-
-    this._history_hash = {};
-    this._booklist.histories.forEach(function (history) {
-      self._history_hash[history.id] = history.history;
-    });
   },
 
   /* ordered by books */
@@ -463,8 +468,8 @@ Bibman.BookList.UI = Bibman.Class({
       var id = book.id;
       return {
         book: book,
-        lending: self._lending_hash[id],
-        history: self._history_hash[id]
+        lending: self._booklist.lending(id),
+        history: self._booklist.history(id)
       };
     });
 
@@ -539,13 +544,13 @@ Bibman.BookList.UI = Bibman.Class({
       });
 
       /* lending */
-      var book_id = $item.parents('.book-item').data('book-id');
+      var book_id = $item.data('book-id');
       var $lending_block = $item.find('.lending');
       Bibman.UI.set_lending_event_handler(self._booklist, $lending_block);
       Bibman.API.lend_book.lending_callbacks.add(function(target_id, lending) {
         if (target_id !== book_id) return;
 
-        lending = self._booklist.update_lending(lending);
+        lending = self._booklist.update_lending(lending, book_id);
         $lending_block.empty().html(lending_template(lending));
         Bibman.UI.set_lending_event_handler(self._booklist, $lending_block);
       });
