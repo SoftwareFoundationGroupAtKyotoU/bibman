@@ -1,13 +1,22 @@
 'use strict';
 
+var Bibman = {};
+
+Bibman.Handlebars = {};
+Bibman.Handlebars.cache = {};
+
 Handlebars.registerHelper('template', function(name, context) {
-  var subTemplate =  Handlebars.compile($('#' + name).html());
+  var sub_template = Bibman.Handlebars.cache[name];
+  if (!sub_template) {
+    sub_template =
+      Bibman.Handlebars.cache[name] =
+      Handlebars.compile($('#' + name).html());
+  }
+
   var ctx = $.extend({}, context.hash, context.hash.context || {});
-  return new Handlebars.SafeString(subTemplate(ctx));
+  return new Handlebars.SafeString(sub_template(ctx));
 });
 
-
-var Bibman = {};
 
 Bibman.log = (function () {
   var log = console && console.log ? console.log : function () {};
