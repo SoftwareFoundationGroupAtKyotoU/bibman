@@ -29,6 +29,7 @@ SCRIPTS[] =
 	my
 	search_book
 	user
+	tex
 
 setenv(PGHOST, localhost)
 setenv(PGUSER, postgres)

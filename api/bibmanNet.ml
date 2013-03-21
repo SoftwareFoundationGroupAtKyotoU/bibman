@@ -13,11 +13,15 @@ module MimeType = struct
   let form_encoded = "application/x-www-form-urlencoded"
   ;;
 
+  let tex = "application/x-tex"
+  ;;
+
   let all_types = [
     html;
     json;
     text;
     form_encoded;
+    tex;
   ]
   ;;
 

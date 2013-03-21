@@ -43,6 +43,11 @@ let kind_values =
   new list_cp string_wrappers ~group ["kind"; "values"; ] [] "options."
 ;;
 
+let kind_expendable =
+  new string_cp ~group ["kind"; "expendable"; ] ""
+    "the value meaning \"expendable\" state."
+;;
+
 let status_values =
   new list_cp string_wrappers ~group ["status"; "values"; ] [] "options."
 ;;
@@ -143,6 +148,13 @@ let script_lending = new string_cp ~group ["script"; "lending"; ] "" ""
 let script_user = new string_cp ~group ["script"; "user"; ] "" ""
 ;;
 
+let script_tex = new string_cp ~group ["script"; "tex"; ] "" ""
+;;
+
+(* TEX *)
+let tex_tosho = new string_cp ~group ["tex"; "tosho"; ] "" ""
+;;
+
 
 let find_entity (exists : string -> bool) (name : string) =
   let module PathGen = BatPathGen.OfString in
@@ -241,6 +253,9 @@ let session_salt = session_salt # get
 let kind_values = kind_values # get
 ;;
 
+let kind_expendable = kind_expendable # get
+;;
+
 let status_values = status_values # get
 ;;
 
@@ -296,10 +311,14 @@ let db_database = db_database # get
 ;;
 
 
+let file_path dir filename = dir ^ (filename # get)
+;;
+
+
 let script_dir = find_directory_or_exit "script"
 ;;
 
-let script_file_path filename = script_dir ^ (filename # get)
+let script_file_path = file_path script_dir
 ;;
 
 let script_search = script_file_path script_search
@@ -323,6 +342,15 @@ let script_lending = script_file_path script_lending
 let script_user = script_file_path script_user
 ;;
 
+let script_tex = script_file_path script_tex
+;;
+
 
 let static_dir = find_directory_or_exit "static"
+;;
+
+let static_file_path = file_path static_dir
+;;
+
+let tex_tosho = static_file_path tex_tosho
 ;;

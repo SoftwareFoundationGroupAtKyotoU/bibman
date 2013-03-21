@@ -23,6 +23,8 @@ session = {
 kind = {
   (* options. *)
   values = ["消耗品"; "図書"; "その他"]
+  (* the value meaning "expendable" state. *)
+  expendable = "消耗品"
 }
 
 status = {
@@ -94,4 +96,9 @@ script = {
   catalog = "catalog"
   lending = "lending"
   user = "user"
+  tex = "tex"
+}
+
+tex = {
+  tosho = "tosho.tex"
 }

@@ -116,6 +116,8 @@ assert(ss.methodw() === 40002);
 Bibman.config = {};
 
 Bibman.API = {};
+Bibman.API.ROOT = './../api/';
+
 (function() {
 
   function register_api(api) {
@@ -123,7 +125,7 @@ Bibman.API = {};
       {
         dataType: 'json',
         type: api.type,
-        url: './../api/' + api.url,
+        url: Bibman.API.ROOT + api.url,
         traditional: true
       },
       api.settings || {}
@@ -709,6 +711,20 @@ Bibman.BookList.UI.AllDrawer = Bibman.Class({
   }
 });
 
+
+/* TeX Download */
+Bibman.download_tex = function(book_id) {
+  var url = Bibman.API.ROOT + 'book-' + book_id + '.tex';
+  var full_url =
+    window.location.protocol + '//' + window.location.host + '/' + url;
+
+  $.fileDownload(url, {
+    failCallback: function() {
+      window.alert('ファイルのダウンロードに失敗しました．' + full_url + ' に再度アクセスするか，管理者に連絡してください．');
+    }
+  });
+};
+
 /* init function */
 Bibman.user = undefined;
 
@@ -849,8 +865,7 @@ Bibman.init.load_callbacks.add(function() {
     Bibman.API.register_book(data)
       .done(function(id) {
         if (data.status === Bibman.config.book.status.purchase) {
-          /* TODO: TeX download */
-          console.log('TeX Downloading ...');
+          Bibman.download_tex(id);
         }
         else {
           data.id = id;
@@ -885,7 +900,7 @@ Bibman.init.load_callbacks.add(function() {
 
       var id = $(e.target).parents('.book-item').data('book-id');
 
-      /* TODO: Download TeX file */
+      Bibman.download_tex(id);
 
       booklist.remove(id);
       if (booklist.count() === 0) {

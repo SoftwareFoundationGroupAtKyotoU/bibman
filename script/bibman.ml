@@ -154,6 +154,35 @@ let run =
 
 
 (* Misc *)
+let substitute_symbol =
+  let rex = Pcre.regexp ~flags:[ `UTF8; ] "\\$[a-zA-Z_]+" in
+  fun (f : string -> string option) (content : string) ->
+    let subst str =
+      let name = String.sub str 1 (String.length str - 1) in
+      match f name with
+      | Some v -> v
+      | None -> str
+    in
+    Pcre.substitute ~rex ~subst content
+;;
+
+let substitute_book_info =
+  let substitute (book, entry, authors, publisher) = function
+    | "i" -> Some (Model.isbn_of_entry entry)
+    | "t" -> Some (Model.title_of_entry entry)
+    | "a" -> Some (String.concat ", " authors)
+    | "p" -> Some publisher
+    | "y" -> Some (Int32.to_string (Model.publish_year_of_entry entry))
+    | "l" -> Some (Model.location_of_book book)
+    | _ -> None
+  in
+
+  fun dbh bid content ->
+    match Model.book_info_of_book_id dbh bid with
+    | None -> None
+    | Some info ->
+      Some (substitute_symbol (substitute info) content)
+;;
 
 let send_book_mail
     dbh
@@ -163,26 +192,14 @@ let send_book_mail
     (subject : string)
     (content : string)
   : bool =
-  match Model.book_info_of_book_id dbh bid with
+  match substitute_book_info dbh bid content with
   | None -> false
-  | Some (book, entry, authors, publisher) ->
-    let buf = Buffer.create 1024 in
-    let () =
-      Buffer.add_substitute buf
-        (function
-        | "t" -> Model.title_of_entry entry
-        | "a" -> String.concat ", " authors
-        | "p" -> publisher
-        | "y" -> Int32.to_string (Model.publish_year_of_entry entry)
-        | "l" -> Model.location_of_book book
-        | x -> x)
-        content
-    in
+  | Some content ->
     let message = Netsendmail.compose
       ~from_addr: Config.mail_sender
       ~to_addrs:  [account, address]
       ~subject:   subject
-      (Buffer.contents buf)
+      content
     in
     Netsendmail.sendmail message;
     true
