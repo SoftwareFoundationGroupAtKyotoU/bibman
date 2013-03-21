@@ -89,8 +89,8 @@ let wish_book =
             bid
             (fst Config.mail_staff)
             ~address: (snd Config.mail_staff)
-            Config.wish_book_subject
-            Config.wish_book_content
+            Config.wish_book_registered_subject
+            Config.wish_book_registered_content
         )
     end
   in

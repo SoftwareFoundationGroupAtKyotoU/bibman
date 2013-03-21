@@ -56,10 +56,7 @@ let purchase =
     | None -> ()
     | Some uid -> begin
       PGSQL(dbh) "DELETE FROM wish_book WHERE book_id = $bid";
-      let account =
-        BatList.first
-          (PGSQL(dbh) "SELECT account FROM lab8_user WHERE user_id = $uid")
-      in
+      let account = account_of_user_id dbh uid in
       ignore (
         Bibman.send_book_mail
           dbh bid account

@@ -121,9 +121,7 @@ let return =
       "INSERT INTO lending (book_id, user_id, start_date, due_date) VALUES ($bid, $reserver_id, $start_date, $due_date)";
     PGSQL(dbh)
       "DELETE FROM reservation WHERE book_id = $bid AND user_id = $reserver_id";
-    let reserver_account = BatList.first
-      (PGSQL(dbh) "SELECT account FROM lab8_user WHERE user_id = $reserver_id")
-    in
+    let reserver_account = account_of_user_id dbh reserver_id in
     ignore
       (Bibman.send_book_mail
          dbh bid reserver_account

@@ -8,13 +8,21 @@ let wish_book =
 
   let body dbh bid =
     match
-      Model.exists (PGSQL(dbh) "SELECT 1 FROM wish_book WHERE book_id = $bid")
+      Model.first (PGSQL(dbh) "SELECT user_id FROM wish_book WHERE book_id = $bid")
     with
-    | false -> raise (Bibman.Invalid_argument "book-id")
-    | true -> begin
+    | None -> raise (Bibman.Invalid_argument "book-id")
+    | Some uid -> begin
+      let account = Model.account_of_user_id dbh uid in
+      ignore (
+        Bibman.send_book_mail
+          dbh
+          bid
+          account
+          Config.wish_book_removed_subject
+          Config.wish_book_removed_content
+      );
       remove_book dbh bid;
       PGSQL(dbh) "DELETE FROM wish_book WHERE book_id = $bid"
-        (* TODO: mail to registerer *)
     end
   in
 

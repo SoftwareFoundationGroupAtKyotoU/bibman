@@ -188,6 +188,11 @@ let find_user_id dbh account =
   first uids
 ;;
 
+let account_of_user_id dbh uid =
+  BatList.first
+    (PGSQL(dbh) "SELECT account FROM lab8_user WHERE user_id = $uid")
+;;
+
 (** history **)
 type history =
   int32 *   (* book id *)

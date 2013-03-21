@@ -71,7 +71,13 @@ mail = {
   }
 
   (* same as lending except that this settings are for wish-book registration of books. *)
-  wish_book = {
+  wish_book_registered = {
+    subject = ""
+    content = ""
+  }
+
+  (* same as lending except that this settings are for removal of a book in wish-book. *)
+  wish_book_removed = {
     subject = ""
     content = ""
   }

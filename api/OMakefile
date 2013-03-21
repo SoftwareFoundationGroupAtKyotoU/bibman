@@ -37,6 +37,8 @@ foreach(filename => ..., $(CGIS))
 	DEPENDS += $(OCamlProgram $(filename).cgi, $(COMMONS) $(filename))
 	export DEPENDS
 
+DEPENDS += $(OCamlProgram config.cgi, $(COMMONS) config_cgi)
+
 all: $(DEPENDS)
 	ln-or-cp main.cgi ../
 

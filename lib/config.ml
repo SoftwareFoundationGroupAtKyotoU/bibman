@@ -100,13 +100,22 @@ let purchase_content =
   new string_cp ~group ["mail"; "purchase"; "content"; ] "" "Same as lending"
 ;;
 
-let wish_book_subject =
-  new string_cp ~group ["mail"; "wish_book"; "subject"; ] "" "Same as lending."
+let wish_book_registered_subject =
+  new string_cp ~group ["mail"; "wish_book_registered"; "subject"; ] "" "Same as lending."
 ;;
 
-let wish_book_content =
-  new string_cp ~group ["mail"; "wish_book"; "content"; ] "" "Same as lending"
+let wish_book_registered_content =
+  new string_cp ~group ["mail"; "wish_book_registered"; "content"; ] "" "Same as lending"
 ;;
+
+let wish_book_removed_subject =
+  new string_cp ~group ["mail"; "wish_book_removed"; "subject"; ] "" "Same as lending."
+;;
+
+let wish_book_removed_content =
+  new string_cp ~group ["mail"; "wish_book_removed"; "content"; ] "" "Same as lending"
+;;
+
 
 (* DATABASE *)
 
@@ -295,10 +304,16 @@ let purchase_subject = purchase_subject # get
 let purchase_content = purchase_content # get
 ;;
 
-let wish_book_subject = wish_book_subject # get
+let wish_book_registered_subject = wish_book_registered_subject # get
 ;;
 
-let wish_book_content = wish_book_content # get
+let wish_book_registered_content = wish_book_registered_content # get
+;;
+
+let wish_book_removed_subject = wish_book_removed_subject # get
+;;
+
+let wish_book_removed_content = wish_book_removed_content # get
 ;;
 
 let db_host = db_host # get
