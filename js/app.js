@@ -731,8 +731,8 @@ Bibman.BookList.UI.AllDrawer = Bibman.Class({
 /* TeX Download */
 Bibman.download_tex = function(book_id) {
   var url = Bibman.API.ROOT + 'book-' + book_id + '.tex';
-  var full_url =
-    window.location.protocol + '//' + window.location.host + '/' + url;
+  var loc = window.location;
+  var full_url = loc.protocol + '//' + loc.host + loc.pathname + url;
 
   $.fileDownload(url, {
     failCallback: function() {
