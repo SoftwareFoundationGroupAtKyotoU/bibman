@@ -55,11 +55,11 @@ mail = {
     subject = ""
     (* content of the mail for lending notifications. Each alphabet following
        $ is replaced with information of a book.
-       	$t: title
-       	$a: author names
-       	$p: publisher
-       	$y: publisher year
-       	$l: location
+        $t: title
+        $a: author names
+        $p: publisher
+        $y: publish year
+        $l: location
         *)
     content = ""
   }
