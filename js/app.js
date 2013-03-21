@@ -66,53 +66,6 @@ Bibman.Class = (function () {
   };
 })();
 
-function assert(b) {
-  console.log(b);
-  if (!b) throw {};
-}
-
-var Test = Bibman.Class({
-  _constructor: function(x, y, z) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-  },
-  methodx: function() { return this.x; },
-  methody: function() { return this.y; },
-  methodz: function() { return this.z; }
-});
-
-var t = new Test(1,2,3);
-assert(t.methodx() === 1);
-assert(t.methody() === 2);
-assert(t.methodz() === 3);
-
-var SubTest = Bibman.Class({
-  _base: Test,
-  methodz: function() { return this._super() * 10; }
-});
-
-var s = new SubTest(1,2,3);
-assert(s.methodx() === 1);
-assert(s.methody() === 2);
-assert(s.methodz() === 30);
-
-var SubSubTest = Bibman.Class({
-  _base: SubTest,
-  _constructor: function(x) {
-    this._super(x, 10, 20);
-  },
-  methodx: function() { return 2; },
-  methodz: function() { return this._super() * this._super(); },
-  methodw: function() { return this.methodz() + this.methodx(); }
-});
-
-var ss = new SubSubTest(10);
-assert(ss.methodx() === 2);
-assert(ss.methody() === 10);
-assert(ss.methodz() === 40000);
-assert(ss.methodw() === 40002);
-
 Bibman.config = {};
 
 Bibman.API = {};
