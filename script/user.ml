@@ -30,7 +30,7 @@ let generate_session =
     in
     let session_id = session_id account uid in
     PGSQL(dbh)
-      "UPDATE lab8_user SET (session_id, session_expiration) = ($session_id, $expiration) WHERE user_id = $uid";
+      "UPDATE member SET (session_id, session_expiration) = ($session_id, $expiration) WHERE user_id = $uid";
     `Stringlit session_id
   in
 
@@ -49,7 +49,7 @@ let certificate =
     let expiration_opt =
       BatList.first (
         PGSQL(dbh)
-          "SELECT session_expiration FROM lab8_user WHERE user_id = $uid AND session_id = $session_id"
+          "SELECT session_expiration FROM member WHERE user_id = $uid AND session_id = $session_id"
       )
     in
     match expiration_opt with
@@ -74,7 +74,7 @@ let confirm =
     let password = Bibman.encrypt password in
     match Model.exists
       (PGSQL(dbh)
-         "SELECT 1 FROM lab8_user WHERE user_id = $uid AND password = $password")
+         "SELECT 1 FROM member WHERE user_id = $uid AND password = $password")
     with
     | false -> raise (Bibman.Invalid_argument "account and/or password")
     | true -> ()
@@ -90,7 +90,7 @@ let confirm =
 let logout =
   let body dbh uid =
     PGSQL(dbh)
-      "UPDATE lab8_user SET (session_id, session_expiration) = (NULL, NULL) WHERE user_id = $uid"
+      "UPDATE member SET (session_id, session_expiration) = (NULL, NULL) WHERE user_id = $uid"
   in
 
   fun dbh -> function

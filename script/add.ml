@@ -120,7 +120,7 @@ let publisher =
 let user =
   let account_exists dbh account =
     not (BatList.is_empty
-           (PGSQL(dbh) "SELECT 1 FROM lab8_user WHERE account = $account"))
+           (PGSQL(dbh) "SELECT 1 FROM member WHERE account = $account"))
   in
 
   let body dbh account password =
@@ -128,7 +128,7 @@ let user =
     else
       let password = Bibman.encrypt password in
       PGSQL(dbh)
-        "INSERT INTO lab8_user (account, password) VALUES ($account, $password)"
+        "INSERT INTO member (account, password) VALUES ($account, $password)"
   in
 
   fun dbh -> function

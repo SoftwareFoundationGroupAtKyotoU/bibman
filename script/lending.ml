@@ -2,7 +2,7 @@ open Model
 ;;
 
 let uid_to_account dbh =
-  let users = PGSQL(dbh) "SELECT user_id, account FROM lab8_user" in
+  let users = PGSQL(dbh) "SELECT user_id, account FROM member" in
   hash_of_list users fst snd
 ;;
 

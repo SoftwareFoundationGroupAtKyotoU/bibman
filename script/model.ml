@@ -180,17 +180,17 @@ let find_publisher dbh publisher =
 ;;
 
 
-(** lab8_user **)
+(** member **)
 let find_user_id dbh account =
   let uids =
-    PGSQL(dbh) "SELECT user_id FROM lab8_user WHERE account = $account"
+    PGSQL(dbh) "SELECT user_id FROM member WHERE account = $account"
   in
   first uids
 ;;
 
 let account_of_user_id dbh uid =
   BatList.first
-    (PGSQL(dbh) "SELECT account FROM lab8_user WHERE user_id = $uid")
+    (PGSQL(dbh) "SELECT account FROM member WHERE user_id = $uid")
 ;;
 
 (** history **)
