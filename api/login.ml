@@ -5,7 +5,7 @@ let main (cgi : Netcgi.cgi) =
   let account = cgi # argument_value "account" in
   let password = cgi # argument_value "password" in
   let open BatOption.Monad in
-  let m = process_command Config.script_user [ "login"; account; password; ] in
+  let m = process_command Config.script_user [ "confirm"; account; password; ] in
   let m = bind m (fun _ -> 
     process_command Config.script_user [ "generate_session"; account; ]
   )

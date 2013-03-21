@@ -69,7 +69,7 @@ let certificate =
   | _ -> assert false
 ;;
 
-let login =
+let confirm =
   let body dbh uid password =
     let password = Bibman.encrypt password in
     match Model.exists
@@ -102,7 +102,7 @@ let logout =
 let actions = [
   ("generate_session", ([`NonEmpty "account"; ], generate_session));
   ("certificate", ([`NonEmpty "account"; `NonEmpty "session_id"], certificate));
-  ("login", ([`NonEmpty "account"; `NonEmpty "password"], login));
+  ("confirm", ([`NonEmpty "account"; `NonEmpty "password"], confirm));
   ("logout", ([`NonEmpty "account"; ], logout));
 ]
 ;;
