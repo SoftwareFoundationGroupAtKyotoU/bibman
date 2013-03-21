@@ -854,9 +854,8 @@ Bibman.init.load_callbacks.add(function() {
           data.id = id;
           booklist.unshift_book(data);
           drawer.draw(0, booklist.count());
+          elements.show();
         }
-
-        elements.show();
       })
       .fail(function() {
         window.alert('入力に誤りがあるか，もしくは既に登録済みです．');
