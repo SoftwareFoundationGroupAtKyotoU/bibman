@@ -28,6 +28,7 @@ CGIS[] =
 	search
 	wish_book
 	tex
+	add
 
 DEPENDS[] =
 
