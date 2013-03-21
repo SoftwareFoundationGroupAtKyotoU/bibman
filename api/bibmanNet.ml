@@ -163,7 +163,6 @@ let cookie_secret_certification_key = "sck"
 let set_certification_info =
   let cookie name value path =
     let cookie = Netcgi.Cookie.make ~path name value in
-    Netcgi.Cookie.set_max_age cookie None;
     cookie
   in
 

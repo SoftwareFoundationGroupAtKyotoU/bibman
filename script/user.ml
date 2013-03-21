@@ -87,11 +87,23 @@ let login =
   | _ -> assert false
 ;;
 
+let logout =
+  let body dbh uid =
+    PGSQL(dbh)
+      "UPDATE lab8_user SET (session_id, session_expiration) = (NULL, NULL) WHERE user_id = $uid"
+  in
+
+  fun dbh -> function
+  | account :: [] ->
+    body dbh (Bibman.user_id_or_raise dbh account);
+    None
+  | _ -> assert false
 
 let actions = [
   ("generate_session", ([`NonEmpty "account"; ], generate_session));
   ("certificate", ([`NonEmpty "account"; `NonEmpty "session_id"], certificate));
   ("login", ([`NonEmpty "account"; `NonEmpty "password"], login));
+  ("logout", ([`NonEmpty "account"; ], logout));
 ]
 ;;
 

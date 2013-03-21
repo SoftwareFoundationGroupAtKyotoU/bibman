@@ -149,7 +149,12 @@ Bibman.API.ROOT = './../api/';
         if (error) error.apply(this, arguments);
       };
 
-      return $.ajax(settings);
+      return $.ajax(settings).fail(function (jqXHR) {
+        if (jqXHR.status === 403 &&
+            jqXHR.responseText === "You aren't certificated") {
+          window.alert('セッションの有効期限を過ぎました．再度ログインし直してください');
+        }
+      });
     };
   }
 
@@ -174,6 +179,9 @@ Bibman.API.ROOT = './../api/';
     },
     { name: 'remove_wishbook', url: 'wish_book.cgi', type: 'POST',
       settings: { data: { action: 'remove' }, dataType: 'text' }
+    },
+    { name: 'logout', url: 'logout.cgi', type: 'POST',
+      settings: { dataType: 'text' }
     }
   ].forEach(register_api);
 })();
@@ -1084,6 +1092,18 @@ Bibman.init.load_callbacks.add(function() {
 
   Bibman.API.lend_book.lending_callbacks.add(update_my_lists);
   update_my_lists();
+});
+
+/* logout */
+Bibman.init.load_callbacks.add(function () {
+  $('#logout').click(function () {
+    var content_type = 'application/x-www-form-urlencoded; charset=UTF-8';
+    Bibman.API.logout({}, { contentType: content_type })
+      .done(function () {
+        console.log(window.location.href.replace(/\/[^\/]+(?:\/#)?$/, '/'));
+        window.location = window.location.href.replace(/\/[^\/]+(?:\/#)?$/, '/');
+      });
+  });
 });
 
 /* swtich contents */

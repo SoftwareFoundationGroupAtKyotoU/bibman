@@ -18,6 +18,7 @@ COMMONS[] =
 
 CGIS[] =
 	login
+	logout
 	main
 	register
 	edit
