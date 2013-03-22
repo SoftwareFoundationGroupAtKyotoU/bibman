@@ -1065,7 +1065,7 @@ Bibman.init.load_callbacks.add(function () {
   $('#logout').click(function () {
     var content_type = 'application/x-www-form-urlencoded; charset=UTF-8';
     Bibman.API.logout({}, { contentType: content_type })
-      .done(function () {
+      .always(function () {
         console.log(window.location.href.replace(/\/[^\/]+(?:\/#)?$/, '/'));
         window.location = window.location.href.replace(/\/[^\/]+(?:\/#)?$/, '/');
       });
