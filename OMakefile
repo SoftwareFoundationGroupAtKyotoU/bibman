@@ -14,3 +14,4 @@ Clean() =
 
 clean:
 	Clean()
+	rm -f ./OMakeroot.omc
