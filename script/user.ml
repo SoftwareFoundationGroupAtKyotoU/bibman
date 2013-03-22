@@ -98,12 +98,40 @@ let logout =
     body dbh (Bibman.user_id_or_raise dbh account);
     None
   | _ -> assert false
+;;
+
+let regenerate_password =
+  let body dbh uid account =
+    let new_password =
+      Bibman.encrypt (Passwdgen.passwdgen (Passwdgen.init ()))
+    in
+    let () =
+      let content =
+        Bibman.substitute_symbol
+          (function
+          | "u" -> Some account
+          | "p" -> Some new_password
+          | _ -> None)
+          Config.regen_password_content
+      in
+      Bibman.send_mail account Config.regen_password_subject content
+    in
+    PGSQL(dbh) "UPDATE member SET (password) = ($new_password) WHERE user_id = $uid"
+  in
+
+  fun dbh -> function
+  | account :: [] ->
+    body dbh (Bibman.user_id_or_raise dbh account) account;
+    None
+  | _ -> assert false
+;;
 
 let actions = [
   ("generate_session", ([`NonEmpty "account"; ], generate_session));
   ("certificate", ([`NonEmpty "account"; `NonEmpty "session_id"], certificate));
   ("confirm", ([`NonEmpty "account"; `NonEmpty "password"], confirm));
   ("logout", ([`NonEmpty "account"; ], logout));
+  ("regenerate_password", ([`NonEmpty "account"; ], regenerate_password));
 ]
 ;;
 

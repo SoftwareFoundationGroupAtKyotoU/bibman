@@ -27,6 +27,15 @@
         text-align: center;
         font-size: 1.3em;
       }
+      #regen_password {
+        position: relative;
+        top: 50px;
+        font-size: 0.8em;
+      }
+      #regen_password fieldset {
+        width: 400px;
+        margin: auto;
+      }
     </style>
   </head>
   <body>
@@ -48,6 +57,14 @@
         </table>
         <input type="submit" value="ログイン" />
       </form>
+      <div id="regen_password">
+        <form method="post" action="./api/regen_password.cgi">
+          <fieldset>
+            アカウント <input type="text" name="account" value="" />
+            <input type="submit" value="新パスワード発行" />
+          </fieldset>
+        </form>
+    </div>
     </div>
   </body>
 </html>

@@ -29,6 +29,7 @@ APIS[] =
 	wish_book
 	tex
 	add
+	regen_password
 
 CGIS[] =
 	$(APIS)

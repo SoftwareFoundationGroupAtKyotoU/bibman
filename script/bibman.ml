@@ -184,6 +184,21 @@ let substitute_book_info =
       Some (substitute_symbol (substitute info) content)
 ;;
 
+let send_mail
+  (account : string)
+  ?(address = Printf.sprintf "%s@%s" account Config.mail_domain)
+  (subject : string)
+  (content : string)
+  : unit =
+  let message = Netsendmail.compose
+    ~from_addr: Config.mail_sender
+    ~to_addrs:  [account, address]
+    ~subject:   subject
+    content
+  in
+  Netsendmail.sendmail message
+;;
+
 let send_book_mail
     dbh
     (bid : int32)
@@ -195,13 +210,7 @@ let send_book_mail
   match substitute_book_info dbh bid content with
   | None -> false
   | Some content ->
-    let message = Netsendmail.compose
-      ~from_addr: Config.mail_sender
-      ~to_addrs:  [account, address]
-      ~subject:   subject
-      content
-    in
-    Netsendmail.sendmail message;
+    send_mail account ~address subject content;
     true
 ;;
 

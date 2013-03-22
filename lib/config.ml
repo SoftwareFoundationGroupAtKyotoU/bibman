@@ -116,6 +116,14 @@ let wish_book_removed_content =
   new string_cp ~group ["mail"; "wish_book_removed"; "content"; ] "" "Same as lending"
 ;;
 
+let regen_password_subject =
+  new string_cp ~group ["mail"; "regen_password"; "subject"; ] "" ""
+;;
+
+let regen_password_content =
+  new string_cp ~group ["mail"; "regen_password"; "content"; ] "" ""
+;;
+
 
 (* DATABASE *)
 
@@ -315,6 +323,13 @@ let wish_book_removed_subject = wish_book_removed_subject # get
 
 let wish_book_removed_content = wish_book_removed_content # get
 ;;
+
+let regen_password_subject = regen_password_subject # get
+;;
+
+let regen_password_content = regen_password_content # get
+;;
+
 
 let db_host = db_host # get
 ;;

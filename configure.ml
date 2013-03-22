@@ -81,6 +81,15 @@ mail = {
     subject = ""
     content = ""
   }
+
+  (* this settings are for regenerating password, and the following are available.
+     $u: user account
+     $p: new password
+  *)
+  regen_password = {
+    subject = ""
+    content = ""
+  }
 }
 
 database = {

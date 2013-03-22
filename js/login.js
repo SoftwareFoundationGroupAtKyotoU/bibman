@@ -24,7 +24,7 @@ $(document).ready(function () {
       }).done(function (account) {
         document.location = './~' + account + '/';
       }).fail(function () {
-        window.alert('アカウント名が不正です．');
+        window.alert('アカウントもしくはパスワードが不正です．');
       });
     }
 
