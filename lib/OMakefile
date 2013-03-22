@@ -5,4 +5,4 @@ OCAMLPACKS[] =
 	config-file
 
 clean:
-	rm -f ./*.o ./*.cmo ./*.cmx ./*.cmi ./*.cgi
+	Clean()

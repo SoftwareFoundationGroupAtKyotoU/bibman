@@ -46,5 +46,5 @@ foreach(filename => ..., $(SCRIPTS))
 all: $(DEPENDS)
 
 clean:
-	rm -f ./*.o ./*.cmo ./*.cmx ./*.cmi ./*.opt
-	rm -f add catalog edit lending my search_book
+	Clean()
+	rm -f $(SCRIPTS)

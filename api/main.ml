@@ -9,7 +9,7 @@ let read_file (filename : string) : string =
   BatIO.read_all ic
 ;;
 
-let html_template_file = Config.static_dir ^ "main.html";
+let html_template_file = Config.static_dir ^ "main.html"
 ;;
 
 let main (cgi : Netcgi.cgi) (account : string) =

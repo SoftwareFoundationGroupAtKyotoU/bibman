@@ -16,10 +16,9 @@ COMMONS[] =
 	../lib/config
 	bibmanNet
 
-CGIS[] =
+APIS[] =
 	login
 	logout
-	main
 	register
 	edit
 	history
@@ -30,6 +29,10 @@ CGIS[] =
 	wish_book
 	tex
 	add
+
+CGIS[] =
+	$(APIS)
+	main
 
 DEPENDS[] =
 
@@ -43,4 +46,5 @@ all: $(DEPENDS)
 	ln-or-cp main.cgi ../
 
 clean:
-	rm -f ./*.o ./*.cmo ./*.cmx ./*.cmi ./*.cgi ./*.opt
+	Clean()
+	rm -f ../main.cgi

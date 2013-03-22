@@ -11,6 +11,11 @@ OCAMLFLAGS      += $(FLAGS)
 OCAMLCFLAGS     += $(FLAGS)
 OCAMLOPTFLAGS   += $(FLAGS)
 
+Clean() =
+	rm -f ./*.o ./*.cmo ./*.cmx ./*.cmi ./*.cmt ./*.annot ./*.cgi ./*.opt
+	rm ./*~
+	rm ./OMakefile.omc
+
 .SUBDIRS: lib api script
 
 ################################################
