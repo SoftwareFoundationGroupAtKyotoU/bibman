@@ -11,7 +11,7 @@ let main (cgi : Netcgi.cgi) =
   );
   cgi # set_header
     ~status:`See_other
-    ~fields:[("Location", [ "../index.html"; ])]
+    ~fields:[("Location", [ Config.root_path; ])]
     ()
 ;;
 
