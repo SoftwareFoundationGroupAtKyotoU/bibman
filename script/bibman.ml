@@ -191,6 +191,8 @@ let send_mail
   (content : string)
   : unit =
   let message = Netsendmail.compose
+    ~in_charset: `Enc_utf8
+    ~out_charset: `Enc_utf8
     ~from_addr: Config.mail_sender
     ~to_addrs:  [account, address]
     ~subject:   subject
