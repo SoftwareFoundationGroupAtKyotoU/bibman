@@ -176,11 +176,12 @@ let tex_tosho = new string_cp ~group ["tex"; "tosho"; ] "" ""
 ;;
 
 
-let find_entity (exists : string -> bool) (name : string) =
+let find_entity (exists : string -> bool) (rel_path : string) =
   let module PathGen = BatPathGen.OfString in
-  let (/:) = PathGen.Operators.(/:) in
+  let (//@) = PathGen.Operators.(//@) in
+  let rel_path = PathGen.of_string rel_path in
   let rec iter cur_path =
-    let path = PathGen.to_string (cur_path /: name) in
+    let path = PathGen.to_string (cur_path //@ rel_path) in
     if exists path then Some path
     else
       let parent_path =
@@ -193,15 +194,15 @@ let find_entity (exists : string -> bool) (name : string) =
   iter (PathGen.of_string (Sys.getcwd ()))
 ;;
 
-let find_file (name : string) = find_entity Sys.file_exists name
+let find_file (rel_path : string) = find_entity Sys.file_exists rel_path
 ;;
 
-let find_file_or_exit (name : string) =
-  match find_file name with
+let find_file_or_exit (rel_path : string) =
+  match find_file rel_path with
   | Some path -> path
   | None ->
     prerr_endline
-      (Printf.sprintf "Cannot find the file '%s'" name);
+      (Printf.sprintf "Cannot find the file '%s'" rel_path);
     exit 1
 ;;
 
@@ -211,27 +212,32 @@ let find_directory =
     | Sys_error _ -> false
   in
 
-  fun (name : string) ->
+  fun (rel_path : string) ->
     BatOption.Monad.bind
-      (find_entity exists name)
+      (find_entity exists rel_path)
       (fun dir_path -> (* with separator (/) *)
         let module PathGen = BatPathGen.OfString in
         let dir_path = PathGen.of_string dir_path in
         Some (PathGen.to_string (PathGen.Operators.(/:) dir_path "")))
 ;;
 
-let find_directory_or_exit dirname =
-  match find_directory dirname with
+let find_directory_or_exit rel_path =
+  match find_directory rel_path with
   | Some dir -> dir
   | None ->
     prerr_endline
-      (Printf.sprintf "Cannot find the directory '%s' for scripts" dirname);
+      (Printf.sprintf "Cannot find the directory '%s' for scripts" rel_path);
     exit 1
 ;;
 
 
 let read_script (group : Config_file.group) =
-  let path = find_file_or_exit "configure.ml" in
+  let rel_path =
+    let module PathGen = BatPathGen.OfString in
+    let open PathGen.Operators in
+    PathGen.to_string ((PathGen.of_string "config") /: "configure.ml")
+  in
+  let path = find_file_or_exit rel_path in
   group # read ~no_default:true path
 ;;
 
