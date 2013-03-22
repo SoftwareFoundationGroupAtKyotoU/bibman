@@ -102,9 +102,7 @@ let logout =
 
 let regenerate_password =
   let body dbh uid account =
-    let new_password =
-      Bibman.encrypt (Passwdgen.passwdgen (Passwdgen.init ()))
-    in
+    let new_password = Passwdgen.passwdgen (Passwdgen.init ()) in
     let () =
       let content =
         Bibman.substitute_symbol
@@ -116,7 +114,8 @@ let regenerate_password =
       in
       Bibman.send_mail account Config.regen_password_subject content
     in
-    PGSQL(dbh) "UPDATE member SET (password) = ($new_password) WHERE user_id = $uid"
+    let encrypted_password = Bibman.encrypt new_password in
+    PGSQL(dbh) "UPDATE member SET (password) = ($encrypted_password) WHERE user_id = $uid"
   in
 
   fun dbh -> function
