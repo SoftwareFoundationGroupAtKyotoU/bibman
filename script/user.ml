@@ -101,8 +101,19 @@ let logout =
 ;;
 
 let regenerate_password =
+
+  let generate_password () =
+    let password_length = 10 in
+    let module Random = Cryptokit.Random in
+    let raw = Random.string Random.secure_rng password_length in
+    let trans = Cryptokit.Base64.encode_compact () in
+    trans # put_string raw;
+    let password = trans # get_string in
+    String.sub password 0 10
+  in
+
   let body dbh uid account =
-    let new_password = Passwdgen.passwdgen (Passwdgen.init ()) in
+    let new_password = generate_password () in
     let () =
       let content =
         Bibman.substitute_symbol
