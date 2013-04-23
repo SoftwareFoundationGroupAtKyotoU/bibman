@@ -32,10 +32,7 @@ SCRIPTS[] =
 	user
 	tex
 
-setenv(PGHOST, localhost)
-setenv(PGUSER, postgres)
-setenv(PGPASSWORD, postgres)
-setenv(PGDATABASE, bibman)
+include DB_config
 
 DEPENDS[] =
 

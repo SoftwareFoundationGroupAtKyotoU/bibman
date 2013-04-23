@@ -1,5 +1,6 @@
 api/*.cgi
 
+script/DB_config.om
 script/add
 script/edit
 script/search_book
