@@ -44,7 +44,7 @@ let kind_values =
 ;;
 
 let kind_expendable =
-  new int_cp ~group ["kind"; "expendable"; ] -1
+  new int_cp ~group ["kind"; "expendable"; ] (-1)
     "the index at which the value means \"expendable\" state."
 ;;
 
@@ -53,7 +53,7 @@ let status_values =
 ;;
 
 let status_purchase =
-  new int_cp ~group ["status"; "purchase"; ] -1
+  new int_cp ~group ["status"; "purchase"; ] (-1)
     "the index at which the value means \"expendable\" state."
 ;;
 
