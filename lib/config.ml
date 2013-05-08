@@ -61,6 +61,9 @@ let location_values =
   new list_cp string_wrappers ~group ["location"; "values"; ] [] "options."
 ;;
 
+let location_propers =
+  new list_cp string_wrappers ~group ["location"; "propers"; ] [] ""
+
 (* MAIL *)
 
 let mail_domain =
@@ -301,6 +304,16 @@ let status_purchase =
 ;;
 
 let location_values = location_values # get
+;;
+
+let location_proper_assoc =
+  let propers = location_propers # get in
+  if (List.length propers) <> (List.length location_values) then begin
+    prerr_endline "there must be the correspondence between location values and location propers";
+    exit 1
+  end
+  else
+    List.combine location_values propers
 ;;
 
 let mail_domain = mail_domain # get

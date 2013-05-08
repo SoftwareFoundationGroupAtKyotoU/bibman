@@ -10,7 +10,6 @@ let main (cgi: Netcgi.cgi) _ =
       arg_val "id";
       arg_val "purchaser";
       arg_val "sent-date";
-      arg_val "place";
       arg_val "budget";
       arg_val "number";
       arg_val "price";
@@ -24,7 +23,6 @@ let () = run
     ("id", `Int32);
     ("purchaser", `NonEmpty);
     ("sent-date", `NonEmpty);
-    ("place", `NonEmpty);
     ("budget", `NonEmpty);
     ("number", `NonEmpty);
     ("price", `NonEmpty);

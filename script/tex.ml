@@ -1,5 +1,15 @@
 let tosho =
-  let body dbh bid purchaser sent_date place budget number price note =
+  let location dbh bid =
+    let loc = BatList.first (
+      PGSQL(dbh) "SELECT location FROM book WHERE book_id = $bid"
+    ) in
+    try
+      List.assoc loc Config.location_proper_assoc
+    with
+      Not_found -> loc
+  in
+
+  let body dbh bid purchaser sent_date budget number price note =
     let content =
       BatIO.read_all
         (BatIO.input_channel
@@ -14,13 +24,14 @@ let tosho =
         BatList.first (PGSQL(dbh) "SELECT kind FROM book WHERE book_id = $bid")
       in
       let mc = if kind = Config.kind_expendable then "1" else "0" in
+      let loc = location dbh bid in
       let content =
         Bibman.substitute_symbol
           (function
           | "mc" -> Some mc
           | "purchaser" -> Some purchaser
           | "sd" -> Some sent_date
-          | "place" -> Some place
+          | "location" -> Some loc
           | "budget" -> Some budget
           | "number" -> Some number
           | "price" -> Some price
@@ -33,8 +44,8 @@ let tosho =
   in
 
   fun dbh -> function
-  | bid :: purchase :: sent_date :: place :: budget :: number :: price :: note :: [] ->
-    Some (body dbh (Int32.of_string bid) purchase sent_date place budget number price note)
+  | bid :: purchase :: sent_date :: budget :: number :: price :: note :: [] ->
+    Some (body dbh (Int32.of_string bid) purchase sent_date budget number price note)
   | _ -> assert false
 ;;
 
@@ -43,7 +54,6 @@ let actions = [
     `Int32 "book-id";
     `NonEmpty "purchaser";
     `NonEmpty "sent-date";
-    `NonEmpty "place";
     `NonEmpty "budget";
     (* `NonEmpty "management-classification"; *)
     `NonEmpty "number";
