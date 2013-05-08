@@ -178,7 +178,9 @@ Bibman.BookList = Bibman.Class({
     this._lending_hash = {};
     this._history_hash = {};
 
-    this.books.forEach(_.bind(this._trans_book, this));
+    this.books.forEach(function(book) {
+      book.author = book.author.join(', ');
+    });
 
     var self = this;
 
@@ -190,10 +192,6 @@ Bibman.BookList = Bibman.Class({
     (books_info.histories || []).forEach(function (history) {
       self._history_hash[history.id] = history.history;
     });
-  },
-
-  _trans_book: function(book) {
-    book.author = book.author.join(', ');
   },
 
   _trans_lending: function(lending) {
@@ -383,9 +381,9 @@ Bibman.UI.edit_text = (function() {
   };
 })();
 
-Bibman.UI.set_lending_event_handler = (function() {
+Bibman.BookList.UI = (function () {
 
-  return function(booklist, $lending_block) {
+  function set_lending_event_handler(booklist, $lending_block) {
 
     var id = $lending_block.parents('.book-item').data('book-id');
     function set_event_handler(action, $target) {
@@ -412,135 +410,135 @@ Bibman.UI.set_lending_event_handler = (function() {
     ].forEach(function(arr) {
       set_event_handler.apply(this, arr);
     });
-  };
-})();
+  }
 
-Bibman.BookList.UI = Bibman.Class({
-  _constructor: function(booklist, booklist_template, template_option) {
-    this._booklist = booklist;
+  return Bibman.Class({
+    _constructor: function(booklist, booklist_template, template_option) {
+      this._booklist = booklist;
 
-    this._booklist_template = booklist_template;
-    this._template_option = template_option || {};
-    this._edit_complete_callbacks = $.Callbacks();
-    this._edit_fail_callbacks = $.Callbacks();
-    this._edit_success_callbacks = $.Callbacks();
-  },
+      this._booklist_template = booklist_template;
+      this._template_option = template_option || {};
+      this._edit_complete_callbacks = $.Callbacks();
+      this._edit_fail_callbacks = $.Callbacks();
+      this._edit_success_callbacks = $.Callbacks();
+    },
 
-  /* ordered by books */
-  _htmlify_book_list: function (books) {
-    var self = this;
-    var items = books.map(function (book) {
-      var id = book.id;
-      return {
-        book: book,
-        lending: self._booklist.lending(id),
-        history: self._booklist.history(id)
-      };
-    });
-
-    return this._booklist_template({
-      items: items,
-      option: this._template_option
-    });
-  },
-
-  _edit_event_handler: function(e) {
-    var self = this;
-    var $target = $(e.target);
-    var $item = $(e.delegateTarget);
-
-    Bibman.UI.edit_text($target, {
-      type: $target.data('type'),
-      values: (Bibman.config.book[$target.data('item')] || {}).values
-    }).done(function(val, prevent) {
-      var p = false;
-      self._edit_complete_callbacks.fire({
-        target: e.target,
-        value: val,
-        prevent: function() { p = true; }
+    /* ordered by books */
+    _htmlify_book_list: function (books) {
+      var self = this;
+      var items = books.map(function (book) {
+        var id = book.id;
+        return {
+          book: book,
+          lending: self._booklist.lending(id),
+          history: self._booklist.history(id)
+        };
       });
 
-      if (p) prevent();
-      else {
-        Bibman.API.edit_book({
-          id: $item.data('book-id'),
-          item: $target.data('item'),
-          value: val
-        }).done(function() {
-          self._edit_success_callbacks.fire({
-            target: e.target,
-            value: val
-          });
-        }).fail(function() {
-          prevent();
-          self._edit_fail_callbacks.fire({
-            target: e.target,
-            value: val
-          });
-        });
-      }
-    });
-  },
-
-  _set_event_handler: function($list) {
-    var self = this;
-    var lending_template = Handlebars.compile($('#lending-item-template').html());
-
-    $list.children().each(function (idx) {
-      var class_display_none = 'display-none';
-      var $item = $(this);
-
-      /* expansion */
-      var $toggled = $item.find('.edit-mark,.book-description');
-
-      $item.find('.expand').click(function() {
-        $(this).children().each(function () {
-          $(this).toggleClass(class_display_none);
-        });
-        $toggled.toggleClass(class_display_none);
+      return this._booklist_template({
+        items: items,
+        option: this._template_option
       });
+    },
 
-      /* edit */
-      $item.click(function(e) {
-        var $target = $(e.target);
-        if ($target.hasClass('edit-mark')) {
-          self._edit_event_handler(e);
+    _edit_event_handler: function(e) {
+      var self = this;
+      var $target = $(e.target);
+      var $item = $(e.delegateTarget);
+
+      Bibman.UI.edit_text($target, {
+        type: $target.data('type'),
+        values: (Bibman.config.book[$target.data('item')] || {}).values
+      }).done(function(val, prevent) {
+        var p = false;
+        self._edit_complete_callbacks.fire({
+          target: e.target,
+          value: val,
+          prevent: function() { p = true; }
+        });
+
+        if (p) prevent();
+        else {
+          Bibman.API.edit_book({
+            id: $item.data('book-id'),
+            item: $target.data('item'),
+            value: val
+          }).done(function() {
+            self._edit_success_callbacks.fire({
+              target: e.target,
+              value: val
+            });
+          }).fail(function() {
+            prevent();
+            self._edit_fail_callbacks.fire({
+              target: e.target,
+              value: val
+            });
+          });
         }
       });
+    },
 
-      /* lending */
-      var book_id = $item.data('book-id');
-      var $lending_block = $item.find('.lending');
-      Bibman.UI.set_lending_event_handler(self._booklist, $lending_block);
-      Bibman.API.lend_book.lending_callbacks.add(function(target_id, lending) {
-        if (target_id !== book_id) return;
+    _set_event_handler: function($list) {
+      var self = this;
+      var lending_template = Handlebars.compile($('#lending-item-template').html());
 
-        lending = self._booklist.update_lending(lending, book_id);
-        $lending_block.empty().html(lending_template(lending));
+      $list.children().each(function (idx) {
+        var class_display_none = 'display-none';
+        var $item = $(this);
+
+        /* expansion */
+        var $toggled = $item.find('.edit-mark,.book-description');
+
+        $item.find('.expand').click(function() {
+          $(this).children().each(function () {
+            $(this).toggleClass(class_display_none);
+          });
+          $toggled.toggleClass(class_display_none);
+        });
+
+        /* edit */
+        $item.click(function(e) {
+          var $target = $(e.target);
+          if ($target.hasClass('edit-mark')) {
+            self._edit_event_handler(e);
+          }
+        });
+
+        /* lending */
+        var book_id = $item.data('book-id');
+        var $lending_block = $item.find('.lending');
         Bibman.UI.set_lending_event_handler(self._booklist, $lending_block);
+        Bibman.API.lend_book.lending_callbacks.add(function(target_id, lending) {
+          if (target_id !== book_id) return;
+
+          lending = self._booklist.update_lending(lending, book_id);
+          $lending_block.empty().html(lending_template(lending));
+          Bibman.UI.set_lending_event_handler(self._booklist, $lending_block);
+        });
       });
-    });
-  },
+    },
 
-  form: function(offset, limit) {
-    var books = this._booklist.books.slice(offset, offset + limit);
-    var $list = $('<div></div>').html(this._htmlify_book_list(books)).find('.book-list');
-    this._set_event_handler($list);
-    return $list;
-  },
+    form: function(offset, limit) {
+      var books = this._booklist.books.slice(offset, offset + limit);
+      var $list = $('<div></div>').html(this._htmlify_book_list(books)).find('.book-list');
+      this._set_event_handler($list);
+      return $list;
+    },
 
-  on_complete_edit: function(callback) {
-    this._edit_complete_callbacks.add(callback);
-  },
+    on_complete_edit: function(callback) {
+      this._edit_complete_callbacks.add(callback);
+    },
 
-  on_succeed_in_edit: function(callback) {
-    this._edit_success_callbacks.add(callback);
-  },
+    on_succeed_in_edit: function(callback) {
+      this._edit_success_callbacks.add(callback);
+    },
 
-  on_fail_edit: function(callback) {
-    this._edit_fail_callbacks.add(callback);
-  }
-});
+    on_fail_edit: function(callback) {
+      this._edit_fail_callbacks.add(callback);
+    }
+  });
+})();
 
 /* UI class for next/previous links, i.e., < 1 2 3 ... n > */
 Bibman.ListStepUI = Bibman.Class({
@@ -1177,7 +1175,6 @@ Bibman.init.load_callbacks.add(function () {
     var content_type = 'application/x-www-form-urlencoded; charset=UTF-8';
     Bibman.API.logout({}, { contentType: content_type })
       .always(function () {
-        console.log(window.location.href.replace(/\/[^\/]+(?:\/#)?$/, '/'));
         window.location = window.location.href.replace(/\/[^\/]+(?:\/#)?$/, '/');
       });
   });
