@@ -55,7 +55,6 @@ let actions = [
     `NonEmpty "purchaser";
     `NonEmpty "sent-date";
     `NonEmpty "budget";
-    (* `NonEmpty "management-classification"; *)
     `NonEmpty "number";
     `NonEmpty "price";
     `String "note";
