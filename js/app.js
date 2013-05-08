@@ -508,13 +508,13 @@ Bibman.BookList.UI = (function () {
         /* lending */
         var book_id = $item.data('book-id');
         var $lending_block = $item.find('.lending');
-        Bibman.UI.set_lending_event_handler(self._booklist, $lending_block);
+        set_lending_event_handler(self._booklist, $lending_block);
         Bibman.API.lend_book.lending_callbacks.add(function(target_id, lending) {
           if (target_id !== book_id) return;
 
           lending = self._booklist.update_lending(lending, book_id);
           $lending_block.empty().html(lending_template(lending));
-          Bibman.UI.set_lending_event_handler(self._booklist, $lending_block);
+          set_lending_event_handler(self._booklist, $lending_block);
         });
       });
     },
