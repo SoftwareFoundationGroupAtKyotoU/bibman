@@ -273,14 +273,69 @@
           </select>
       </div>
       <div id="wishbook-list"></div>
-  </div>
-  <div id="my-page" class="contents" style="display: none">
-    <h3>貸出中</h3>
-    <div id="my-lending"></div>
-    <h3>予約中</h3>
-    <div id="my-reservation"></div>
-    <h3>貸出履歴</h3>
-    <div id="my-history"></div>
-  </div>
-</body>
+      <div id="purchase-frame" style="visibility: hidden">
+        <h4>ラベル</h4>
+        <form>
+          <input id="purchase-frame-label-use-specified" type="checkbox" class="label" data-item="use-specified" data-ignore="1" />
+          <span class="note">ラベルを手動で設定</span>
+          <input id="purchase-frame-label" type="text" class="text" data-item="label" data-value="" disabled="disabled" data-disabled-value="なし" style="width: 200px; margin: auto" />
+        </form>
+
+        <h4>購入情報(TeX)</h4>
+        <form>
+          <table style="display:inline">
+            <tr>
+              <th>購入者</th>
+              <td>
+                <select id="purchase-frame-tex-purchaser" style="width: 156px" data-item="purchaser"></select>
+              </td>
+            </tr>
+            <tr>
+              <th>送付日</th>
+              <td><input type="text" style="width: 150px" data-item="sent-date" /></td>
+            </tr>
+            <tr>
+              <th>使用場所</th>
+              <!-- TODO: text or checkbox? -->
+              <td><input type="text" style="width: 150px" data-item="place" /></td>
+            </tr>
+            <tr>
+              <th>予算科目</th>
+              <td>
+                <select id="purchase-frame-tex-budget" style="width: 156px" data-item="budget"></select>
+              </td>
+            </tr>
+            <tr>
+              <th colspan="2"><b>書籍の追加情報</b></th>
+            </tr>
+            <tr>
+              <th>数量</th>
+              <td><input type="text" style="width: 150px" data-item="number" /></td>
+            </tr>
+            <tr>
+              <th>価格</th>
+              <td><input type="text" style="width: 150px" data-item="price" /></td>
+            </tr>
+            <tr>
+              <th>特記</th>
+              <td><input type="text" style="width: 150px" data-item="note" /></td>
+            </tr>
+          </table>
+        </form>
+
+        <form style="padding-top: 20px">
+          <input id="purchase-frame-ok" type="submit" value="ＯＫ" />
+          <input id="purchase-frame-cancel" type="submit" value="ラベル設定・ダウンロードしない" />
+        </form>
+      </div>
+    </div>
+    <div id="my-page" class="contents" style="display: none">
+      <h3>貸出中</h3>
+      <div id="my-lending"></div>
+      <h3>予約中</h3>
+      <div id="my-reservation"></div>
+      <h3>貸出履歴</h3>
+      <div id="my-history"></div>
+    </div>
+  </body>
 </html>

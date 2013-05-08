@@ -14,7 +14,6 @@ let main (cgi: Netcgi.cgi) (account : string) =
       [ "entry"; isbn; title; authors; pyear; publisher; ]
   );
   let kind = arg_value "kind" in
-  let label = arg_value "label" in
   let status = arg_value "status" in
   let loc = arg_value "location" in
   let bid = ref "" in
@@ -24,7 +23,7 @@ let main (cgi: Netcgi.cgi) (account : string) =
       ~content_type:MimeType.text
       ~output: (fun id -> bid := id; cgi # out_channel # output_string id)
       Config.script_add
-      [ "book"; isbn; loc; kind; label; status; ]
+      [ "book"; isbn; loc; kind; ""; status; ]
   in
   if success then ignore (
     if status = Config.status_purchase then
@@ -44,7 +43,6 @@ let () = run
     ("publish_year", `Int32);
     ("publisher", `NonEmpty);
     ("kind", `Symbol Config.kind_values);
-    ("label", `Any);
     ("status", `Symbol Config.status_values);
     ("location", `Symbol Config.location_values);
   ]

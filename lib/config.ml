@@ -175,6 +175,12 @@ let script_tex = new string_cp ~group ["script"; "tex"; ] "" ""
 let tex_tosho = new string_cp ~group ["tex"; "tosho"; ] "" ""
 ;;
 
+let tex_purchasers = new list_cp string_wrappers ~group ["tex"; "purchasers"; ] [] ""
+;;
+
+let tex_budgets = new list_cp string_wrappers ~group ["tex"; "budgets"; ] [] ""
+;;
+
 
 let find_entity (exists : string -> bool) (rel_path : string) =
   let module PathGen = BatPathGen.OfString in
@@ -395,4 +401,10 @@ let static_file_path = file_path static_dir
 ;;
 
 let tex_tosho = static_file_path tex_tosho
+;;
+
+let tex_purchasers = tex_purchasers # get
+;;
+
+let tex_budgets = tex_budgets # get
 ;;

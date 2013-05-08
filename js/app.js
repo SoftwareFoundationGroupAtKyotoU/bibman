@@ -144,6 +144,9 @@ Bibman.API.ROOT = './../api/';
     },
     { name: 'logout', url: 'logout.cgi', type: 'POST',
       settings: { dataType: 'text' }
+    },
+    { name: 'allocate_label', url: 'allocate_label.cgi', type: 'POST',
+      settings: { dataType: 'text' }
     }
   ].forEach(register_api);
 })();
@@ -695,19 +698,6 @@ Bibman.BookList.UI.AllDrawer = Bibman.Class({
 });
 
 
-/* TeX Download */
-Bibman.download_tex = function(book_id) {
-  var url = Bibman.API.ROOT + 'book-' + book_id + '.tex';
-  var loc = window.location;
-  var full_url = loc.protocol + '//' + loc.host + loc.pathname + url;
-
-  $.fileDownload(url, {
-    failCallback: function() {
-      window.alert('ファイルのダウンロードに失敗しました．' + full_url + ' に再度アクセスするか，管理者に連絡してください．');
-    }
-  });
-};
-
 /* init function */
 Bibman.user = undefined;
 
@@ -812,7 +802,9 @@ Bibman.init.load_callbacks.add(function () {
 
 /* book register */
 Bibman.init.load_callbacks.add(function() {
-  /* set options in select form */
+
+  /* initialize form */
+  /** set options in select form **/
   function add_options($select, values) {
       values.forEach(function (val) {
         var $option = $('<option />');
@@ -825,36 +817,150 @@ Bibman.init.load_callbacks.add(function() {
   ['publisher', 'kind', 'status', 'location'].forEach(function (item) {
     add_options($('#book-register-' + item), Bibman.config.book[item].values);
   });
+  ['purchaser', 'budget'].forEach(function (item) {
+    add_options($('#purchase-frame-tex-' + item), Bibman.config.tex[item].values);
+  });
 
-  /* book register */
-  function register_event_handler(e, booklist, drawer, elements) {
-    var $register_form = $(e.target);
+  /** switch event for disability of label **/
+  (function () {
+    var DOM_checkbox = document.getElementById('purchase-frame-label-use-specified');
+    var DOM_input = document.getElementById('purchase-frame-label');
+    var $input = $(DOM_input);
+    var disabled_value = $input.data('disabled-value');
 
+    var on_change = function () {
+      if (DOM_checkbox.checked) {
+        DOM_input.disabled = false;
+        $input.val($input.data('value'));
+      }
+      else {
+        DOM_input.disabled = true;
+        $input.data('value', $input.val());
+        $input.val(disabled_value);
+      }
+    };
+
+    $(DOM_checkbox).change(on_change);
+  })();
+
+
+  function collect_form_data($form) {
     var empty = false;
-    $register_form.find('input,select').each(function () {
+    $form.find('input,select').each(function () {
       empty = empty || (!$(this).data('ignore') && $(this).val() === '');
     });
     if (empty) {
+      return null;
+    }
+    else {
+      var data = {};
+      $form.find('input,select').each(function() {
+        var item = $(this).data('item');
+        if (item) data[item] = $(this).val();
+      });
+      return data;
+    }
+  }
+
+
+  /* purchase */
+  var purchase = (function () {
+
+    function download_tex(data) {
+      var url = Bibman.API.ROOT + 'book-' + data.id + '.tex';
+      var loc = window.location;
+      var full_url = loc.protocol + '//' + loc.host + loc.pathname + url;
+
+      $.fileDownload(url, {
+        failCallback: function() {
+          window.alert('ファイルのダウンロードに失敗しました．' + full_url + ' に再度アクセスするか，管理者に連絡してください．');
+        },
+        data: data
+      });
+    }
+
+    var $frame = $('#purchase-frame');
+    var hide_frame = function () {
+      $frame.css('visibility', 'hidden');
+    };
+    var book_id;
+    var $dfd;
+
+    /* allocate label & download tex */
+    $('#purchase-frame-ok').click(function () {
+      var data = collect_form_data($('#purchase-frame'));
+
+      if (data === null) {
+        window.alert('未入力の項目があります．');
+        return;
+      }
+
+      data.id = book_id;
+
+      var success = function () {
+        download_tex(data);
+        $dfd.resolve();
+        hide_frame();
+      };
+      var failure = function () {
+        window.alert('ラベルの設定に失敗しました．管理者にお知らせください．');
+        $dfd.reject();
+      };
+
+      if ($('#purchase-frame-label-use-specified').is(':checked')) {
+        Bibman.API.edit_book({
+          id: book_id,
+          item: "label",
+          /* TODO: If label is wanted to be empty, it shouldn't be checked */
+          value: $('#purchase-frame-label').val()
+        }).done(success).fail(failure);
+      }
+      else {
+        Bibman.API.allocate_label(data).done(success).fail(failure);
+      }
+    });
+
+    $('#purchase-frame-cancel').click(function () {
+      $dfd.reject();
+      hide_frame();
+    });
+
+    return function (bid) {
+      $('#purchase-frame').find('input:text,select').each(function () {
+        $(this).val('');
+      });
+
+      $('#purchase-frame-label-use-specified').checked = false;
+      var $label = $('#purchase-frame-label');
+      $label.val($label.data('disabled-value'));
+
+      $frame.css('visibility', 'visible');
+
+      book_id = bid;
+      $dfd = $.Deferred();
+      return $dfd;
+    };
+  })();
+
+  /* book register */
+  function register_event_handler(e, booklist, drawer, elements) {
+    var data = collect_form_data($(e.target));
+    if (data === null) {
       window.alert('未入力の項目があります．');
       return;
     }
 
-    var data = {};
-    $register_form.find('input,select').each(function() {
-      var item = $(this).data('item');
-      if (item) data[item] = $(this).val();
-    });
-
     Bibman.API.register_book(data)
       .done(function(id) {
         if (data.status === Bibman.config.book.status.purchase) {
-          Bibman.download_tex(id);
+          purchase(id);
         }
         else {
-          data.id = id;
-          booklist.unshift_book(data);
-          drawer.draw(0, booklist.count());
-          elements.show();
+          Bibman.API.search_book({ id: id }).done(function (data) {
+            booklist.unshift_book(data);
+            drawer.draw(0, booklist.count());
+            elements.show();
+          });
         }
       })
       .fail(function() {
@@ -874,27 +980,32 @@ Bibman.init.load_callbacks.add(function() {
   }
 
   function set_purchase_event_handler(booklist, drawer, elements) {
-    var purchase = function(target, val) {
+    var may_purchase = function(target, val) {
       return $(target).data('item') === 'status' &&
         val === Bibman.config.book.status.purchase;
     };
+
     var booklistUI = drawer.booklistUI();
 
     booklistUI.on_complete_edit(function(e) {
-      if (purchase(e.target, e.value) &&
+      if (may_purchase(e.target, e.value) &&
           !window.confirm('購入が確定した本はほしい本リストから削除されます．よろしいですか？')) {
         e.prevent();
       }
     });
 
     booklistUI.on_succeed_in_edit(function(e) {
-      if (!purchase(e.target, e.value)) return;
+      var $target = $(e.target);
+      if (may_purchase($target, e.value)) {
 
-      var id = $(e.target).parents('.book-item').data('book-id');
+        var id = $target.parents('.book-item').data('book-id');
 
-      Bibman.download_tex(id);
-      remove_book_from_wish_book(id, booklist, elements, drawer);
+        purchase(id).done(function () {
+          remove_book_from_wish_book(id, booklist, elements, drawer);
+        });
+      }
     });
+
   }
 
   function remove_event_handler($target, booklist, elements, drawer) {

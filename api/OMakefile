@@ -30,6 +30,7 @@ APIS[] =
 	tex
 	add
 	regen_password
+	allocate_label
 
 CGIS[] =
 	$(APIS)

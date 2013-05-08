@@ -16,6 +16,15 @@
       location : {
         values : [ string ]
       }
+    },
+
+    tex : {
+      purchaser: {
+        values: [ string ]
+      },
+      budget: {
+        values: [string ]
+      }
     }
   }
 
@@ -46,6 +55,14 @@ let main (cgi: Netcgi.cgi) : unit =
         ]);
         ("location", `Assoc [
           ("values", json_of_string_list Config.location_values);
+        ]);
+      ]);
+      ("tex", `Assoc [
+        ("purchaser", `Assoc [
+          ("values", json_of_string_list Config.tex_purchasers);
+        ]);
+        ("budget", `Assoc [
+          ("values", json_of_string_list Config.tex_budgets);
         ]);
       ]);
     ]

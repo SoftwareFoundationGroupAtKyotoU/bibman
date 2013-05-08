@@ -70,6 +70,30 @@ let purchase =
   | _ -> assert false
 ;;
 
+let alloc_label =
+  let allocate_label dbh =
+    let mult = Int64.to_string (BatList.first (
+      PGSQL(dbh) "SELECT last_value from label_multiplicative_sequence"
+    ))
+    in
+    let add =
+      match PGSQL(dbh) "SELECT nextval('label_additive_sequence')" with
+      | [Some i] -> Int64.to_string i
+      | _ -> assert false
+    in
+    Printf.sprintf "ω×%s＋%s" mult add
+  in
+
+  let body dbh bid =
+    let label = allocate_label dbh in
+    PGSQL(dbh) "UPDATE book SET (label) = ($label) WHERE book_id = $bid"
+  in
+
+  fun dbh -> function
+  | bid :: [] -> body dbh (Int32.of_string bid); None
+  | _ -> assert false
+;;
+
 let action_generator =
   let body editor dbh id v =
     match first (PGSQL(dbh) "SELECT isbn FROM book WHERE book_id = $id") with
@@ -90,6 +114,7 @@ let action_generator =
 
 let actions = [
   ("purchase", ([`Int32 "book-id"; ], purchase));
+  ("allocate-label", ([ `Int32 "book-id"; ], alloc_label));
 ] @ (List.map action_generator [
   ("title", title);
   ("author", author);

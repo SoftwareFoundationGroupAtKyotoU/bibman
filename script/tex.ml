@@ -1,5 +1,5 @@
 let tosho =
-  let body dbh bid =
+  let body dbh bid purchaser sent_date place budget number price note =
     let content =
       BatIO.read_all
         (BatIO.input_channel
@@ -18,6 +18,13 @@ let tosho =
         Bibman.substitute_symbol
           (function
           | "mc" -> Some mc
+          | "purchaser" -> Some purchaser
+          | "sd" -> Some sent_date
+          | "place" -> Some place
+          | "budget" -> Some budget
+          | "number" -> Some number
+          | "price" -> Some price
+          | "note" -> Some note
           | _ -> None)
           content
       in
@@ -26,13 +33,23 @@ let tosho =
   in
 
   fun dbh -> function
-  | bid :: [] ->
-    Some (body dbh (Int32.of_string bid))
+  | bid :: purchase :: sent_date :: place :: budget :: number :: price :: note :: [] ->
+    Some (body dbh (Int32.of_string bid) purchase sent_date place budget number price note)
   | _ -> assert false
 ;;
 
 let actions = [
-  ("tosho", ([ `Int32 "book-id"; ], tosho));
+  ("tosho", ([
+    `Int32 "book-id";
+    `NonEmpty "purchaser";
+    `NonEmpty "sent-date";
+    `NonEmpty "place";
+    `NonEmpty "budget";
+    (* `NonEmpty "management-classification"; *)
+    `NonEmpty "number";
+    `NonEmpty "price";
+    `String "note";
+  ], tosho));
 ]
 
 let () = Bibman.run actions Sys.argv
