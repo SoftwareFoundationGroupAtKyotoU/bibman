@@ -1074,6 +1074,12 @@ Bibman.init.load_callbacks.add(function() {
   }
 
   function add_publisher_unless_exists($publisher, publisher) {
+    /* TOOD: Does someone want to specify publisher manually? */
+    if (!publisher) {
+      window.alert('出版社名が取得できませんでした．管理者に出版社を追加するようご連絡ください．');
+      return null;
+    }
+
     var $dfd = $.Deferred();
 
     var found = false;
