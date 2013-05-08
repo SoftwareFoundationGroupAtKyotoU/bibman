@@ -44,8 +44,8 @@ let kind_values =
 ;;
 
 let kind_expendable =
-  new string_cp ~group ["kind"; "expendable"; ] ""
-    "the value meaning \"expendable\" state."
+  new int_cp ~group ["kind"; "expendable"; ] -1
+    "the index at which the value means \"expendable\" state."
 ;;
 
 let status_values =
@@ -53,8 +53,8 @@ let status_values =
 ;;
 
 let status_purchase =
-  new string_cp ~group ["status"; "purchase"; ] ""
-    "the value meaning \"purchase\" state."
+  new int_cp ~group ["status"; "purchase"; ] -1
+    "the index at which the value means \"expendable\" state."
 ;;
 
 let location_values =
@@ -288,19 +288,15 @@ let session_salt = session_salt # get
 let kind_values = kind_values # get
 ;;
 
-let kind_expendable = kind_expendable # get
+let kind_expendable =
+  List.nth kind_values (kind_expendable # get)
 ;;
 
 let status_values = status_values # get
 ;;
 
 let status_purchase =
-  let v = status_purchase # get in
-  if (List.exists ((=) v) status_values) then v
-  else begin
-    prerr_endline "specify a item within statsu values as the purchase state";
-    exit 1
-  end
+  List.nth status_values (status_purchase # get)
 ;;
 
 let location_values = location_values # get
