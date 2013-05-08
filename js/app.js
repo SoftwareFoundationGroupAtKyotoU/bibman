@@ -841,11 +841,62 @@ Bibman.init.load_callbacks.add(function() {
     $(DOM_checkbox).change(on_change);
   })();
 
+  /** prepare to add publisher **/
+  function add_publisher_unless_exists(publisher) {
+    var $publisher = $('#book-register-publisher');
+    var $dfd = $.Deferred();
+
+    var found = false;
+    $publisher.find('option').each(function() {
+      found = found || $(this).val() === publisher;
+    });
+    if (found) {
+      $dfd.resolve();
+      return $dfd;
+    }
+
+    if (!window.confirm(
+      '出版社 "' + publisher + '" を登録します．よろしいですか？'
+    )) {
+      $dfd.reject();
+      return $dfd;
+    }
+
+    Bibman.API.add({ item: "publisher", value: publisher })
+      .done(function() {
+        var $option = $('<option />');
+        $option.val(publisher);
+        $option.text(publisher);
+        $publisher.append($option);
+
+        $dfd.resolve();
+      })
+      .fail(function() {
+        window.alert('出版社の登録に失敗しました．');
+        $dfd.reject();
+      });
+
+    return $dfd;
+  }
+
+  $('#add-publisher').click(function () {
+    var publisher = $('#add-publisher-name').val();
+    if (publisher === '') {
+      window.alert('出版社名が入力されていません');
+      return;
+    }
+
+    add_publisher_unless_exists(publisher);
+  });
+
+
 
   function collect_form_data($form) {
     var empty = false;
     $form.find('input,select').each(function () {
-      empty = empty || (!$(this).data('ignore') && $(this).val() === '');
+      var $el = $(this);
+      empty = empty ||
+        ($el.data('item') && !$(this).data('ignore') && $(this).val() === '');
     });
     if (empty) {
       return null;
@@ -1073,51 +1124,13 @@ Bibman.init.load_callbacks.add(function() {
     });
   }
 
-  function add_publisher_unless_exists($publisher, publisher) {
-    /* TOOD: Does someone want to specify publisher manually? */
-    if (!publisher) {
-      window.alert('出版社名が取得できませんでした．管理者に出版社を追加するようご連絡ください．');
-      return null;
-    }
-
-    var $dfd = $.Deferred();
-
-    var found = false;
-    $publisher.find('option').each(function() {
-      found = found || $(this).val() === publisher;
-    });
-    if (found) {
-      $dfd.resolve();
-      return $dfd;
-    }
-
-    if (!window.confirm(
-      "出版社 '" + publisher + "' は登録されていません．新しく登録しますか？(登録しない場合，書籍の登録もキャンセルされます．)"
-    )) {
-      return null;
-    }
-
-    Bibman.API.add({ item: "publisher", value: publisher })
-      .done(function() {
-        var $option = $('<option />');
-        $option.val(publisher);
-        $option.text(publisher);
-        $publisher.append($option);
-
-        $dfd.resolve();
-      })
-      .fail(function() {
-        window.alert('出版社の登録に失敗しました．');
-        $dfd.reject();
-      });
-
-    return $dfd;
-  }
-
   $('#book-register-search').click(function(e) {
     var isbn = $('#book-register-isbn').val();
     if (isbn === '') return;
     book_info(isbn)
+      .fail(function() {
+        window.alert('書籍情報の取得に失敗しました．');
+      })
       .done(function (json) {
         if (json.totalItems !== 1) {
           window.alert('対応する書籍が見つかりませんでした．');
@@ -1125,20 +1138,23 @@ Bibman.init.load_callbacks.add(function() {
         }
 
         var volume_info = json.items[0].volumeInfo;
-        var $publisher = $('#book-register-publisher');
-        var $dfd = add_publisher_unless_exists($publisher, volume_info.publisher);
-        if ($dfd !== null) {
-          $dfd.done(function () {
-            var year = volume_info.publishedDate.substring(0, 4);
-            $publisher.val(volume_info.publisher);
-            $('#book-register-title').val(volume_info.title);
-            $('#book-register-author').val(volume_info.authors.join(', '));
-            $('#book-register-publish-year').val(year);
-          });
+        var publisher = volume_info.publisher;
+
+        var set_params = function () {
+          var year = volume_info.publishedDate.substring(0, 4);
+          $('#book-register-publisher').val(volume_info.publisher);
+          $('#book-register-title').val(volume_info.title);
+          $('#book-register-author').val(volume_info.authors.join(', '));
+          $('#book-register-publish-year').val(year);
+        };
+
+        if (!publisher) {
+          window.alert('出版社名が取得できませんでした．');
+          set_params();
         }
-      })
-      .fail(function() {
-        window.alert('書籍情報の取得に失敗しました．');
+        else {
+          add_publisher_unless_exists(publisher).always(set_params);
+        }
       });
   });
 });
