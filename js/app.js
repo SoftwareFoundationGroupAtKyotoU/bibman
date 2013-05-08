@@ -1064,6 +1064,7 @@ Bibman.init.load_callbacks.add(function() {
 
   /* Book Search by external API */
   function book_info(isbn) {
+    isbn = isbn.replace(/-/g, '');
     return $.ajax({
       url: 'https://www.googleapis.com/books/v1/volumes',
       data: { q: 'isbn:' + isbn },
