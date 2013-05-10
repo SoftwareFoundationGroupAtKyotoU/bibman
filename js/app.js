@@ -798,8 +798,49 @@ Bibman.init.load_callbacks.add(function () {
   });
 });
 
-/* book register */
 Bibman.init.load_callbacks.add(function() {
+
+  var ExternalBook = Bibman.Class({
+    _constructor: function (title, author, publisher, publish_year) {
+      this.items = {
+        title: this._create_item('タイトル', title),
+        author: this._create_item('著者', author),
+        publisher: this._create_item('出版社', publisher),
+        publish_year: this._create_item('出版年', publish_year)
+      };
+    },
+
+    _specified_as: function (val, type) {
+      return typeof val === 'string' && val !== '';
+    },
+
+    _create_item: function (name, param) {
+      return {
+        name: name,
+        specified: this._specified_as(param.value),
+        value: param.value || '',
+        $: param.$
+      };
+    },
+
+    _items: function () {
+      var items = this.items;
+      return Object.keys(items).map(function (key) { return items[key]; });
+    },
+
+    names_of_unspecified: function () {
+      return this._items()
+        .filter(function (item) { return !item.specified; })
+        .map(function (item) { return item.name; });
+    },
+
+    draw_specified: function () {
+      this._items().forEach(function (item) {
+        item.$.val(item.value);
+      });
+    }
+  });
+
 
   /* initialize form */
   /** set options in select form **/
@@ -1138,22 +1179,35 @@ Bibman.init.load_callbacks.add(function() {
         }
 
         var volume_info = json.items[0].volumeInfo;
-        var publisher = volume_info.publisher;
+        var external_book = new ExternalBook({
+          value: volume_info.title,
+          $: $('#book-register-title')
+        }, {
+          value: (volume_info.authors || []).join(', '),
+          $: $('#book-register-author')
+        }, {
+          value: volume_info.publisher,
+          $: $('#book-register-publisher')
+        }, {
+          value: (volume_info.publishedDate || '').substring(0, 4),
+          $: $('#book-register-publish-year')
+        });
 
-        var set_params = function () {
-          var year = volume_info.publishedDate.substring(0, 4);
-          $('#book-register-publisher').val(volume_info.publisher);
-          $('#book-register-title').val(volume_info.title);
-          $('#book-register-author').val(volume_info.authors.join(', '));
-          $('#book-register-publish-year').val(year);
-        };
+        var unspecified = external_book.names_of_unspecified();
+        if (unspecified.length !== 0) {
+          window.alert(
+            "以下の項目が取得できませんでした．\n" +
+              unspecified.join('，')
+          );
+        }
 
-        if (!publisher) {
-          window.alert('出版社名が取得できませんでした．');
-          set_params();
+        if (volume_info.publisher) {
+          add_publisher_unless_exists(volume_info.publisher).always(function () {
+            external_book.draw_specified();
+          });
         }
         else {
-          add_publisher_unless_exists(publisher).always(set_params);
+          external_book.draw_specified();
         }
       });
   });
