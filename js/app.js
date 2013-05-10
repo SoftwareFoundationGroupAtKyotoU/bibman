@@ -1113,6 +1113,7 @@ Bibman.init.load_callbacks.add(function() {
       });
   }
 
+  /* initialize form parts related to wishbook */
   Bibman.API.wishbook().done(function(result) {
     var booklist = new Bibman.BookList(Bibman.user, { books: result });
 
@@ -1125,15 +1126,17 @@ Bibman.init.load_callbacks.add(function() {
       { $list: $list, $sort: $sort }
     );
 
-    $sort.change(function() { drawer.list(); });
-
     var elements = {
       show: function() { Bibman.UI.show($list, $sort); },
       hide: function() { Bibman.UI.hide($list, $sort); }
     };
 
+
+    $sort.change(function() { drawer.list(); });
+
     set_purchase_event_handler(booklist, drawer, elements);
 
+    /** remove event **/
     $list.click(function(e) {
       var $target = $(e.target);
       if ($target.hasClass('remove')) {
@@ -1142,11 +1145,13 @@ Bibman.init.load_callbacks.add(function() {
       }
     });
 
+    /** book registration event **/
     $('#book-register-form').submit(function (e) {
       register_event_handler(e, booklist, drawer, elements);
       return false;
     });
 
+    /** show wish books if exist **/
     if (booklist.count() === 0) {
       elements.hide();
     }
