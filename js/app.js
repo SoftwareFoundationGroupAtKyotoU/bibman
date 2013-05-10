@@ -82,7 +82,7 @@ Bibman.API.ROOT = './../api/';
 
 (function() {
 
-  function register_api(api) {
+  function register_uncertified_api(api) {
     var default_settings = _.extend(
       {
         dataType: 'json',
@@ -111,7 +111,15 @@ Bibman.API.ROOT = './../api/';
         if (error) error.apply(this, arguments);
       };
 
-      return $.ajax(settings).fail(function (jqXHR) {
+      return $.ajax(settings);
+    };
+  }
+
+  function register_api(api) {
+    register_uncertified_api(api);
+    var orig_api = Bibman.API[api.name];
+    Bibman.API[api.name] = function () {
+      return orig_api.apply(this, arguments).fail(function (jqXHR) {
         if (jqXHR.status === 403 &&
             jqXHR.responseText === "You aren't certificated") {
           window.alert('セッションの有効期限を過ぎました．再度ログインし直してください');
@@ -142,13 +150,17 @@ Bibman.API.ROOT = './../api/';
     { name: 'remove_wishbook', url: 'wish_book.cgi', type: 'POST',
       settings: { data: { action: 'remove' }, dataType: 'text' }
     },
-    { name: 'logout', url: 'logout.cgi', type: 'POST',
-      settings: { dataType: 'text' }
-    },
     { name: 'allocate_label', url: 'allocate_label.cgi', type: 'POST',
       settings: { dataType: 'text' }
     }
   ].forEach(register_api);
+
+  [
+    { name: 'logout', url: 'logout.cgi', type: 'POST',
+      settings: { dataType: 'text' }
+    }
+  ].forEach(register_uncertified_api);
+
 })();
 
 /* override lend book API to notify changes of lending states */
