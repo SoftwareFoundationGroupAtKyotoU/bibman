@@ -26,7 +26,7 @@ let main (cgi: Netcgi.cgi) (account : string) =
       [ "book"; isbn; loc; kind; ""; status; ]
   in
   if success then ignore (
-    if BatStrings.trim status = Config.status_purchase then
+    if BatString.trim status = Config.status_purchase then
       process_command Config.script_edit [ "purchase"; !bid; ]
     else
       process_command Config.script_add [ "wish_book"; account; !bid ]
