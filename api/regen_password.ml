@@ -2,10 +2,10 @@ open BibmanNet
 ;;
 
 let main (cgi : Netcgi.cgi) =
-  let account =
-    try cgi # argument_value "account" with
-    | Not_found -> raise (BibmanNet.Invalid_argument "account")
-  in
+  let account = cgi # argument_value "account" in
+  ignore (
+    process_command Config.script_add [ "user"; account; "hoge"; ]
+  );
   ignore (
     process_command Config.script_user [ "regenerate_password"; account; ]
   );
