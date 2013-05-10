@@ -45,3 +45,4 @@ all: $(DEPENDS)
 clean:
 	Clean()
 	rm -f $(SCRIPTS)
+	rm DB_config.omc

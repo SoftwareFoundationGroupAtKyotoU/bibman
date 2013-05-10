@@ -14,4 +14,4 @@ Clean() =
 
 clean:
 	Clean()
-	rm -f ./OMakeroot.omc
+	rm -f ./OMakeroot.omc ./.omakedb ./.omakedb.lock
