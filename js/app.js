@@ -1141,7 +1141,6 @@ Bibman.init.load_callbacks.add(function() {
       var $target = $(e.target);
       if ($target.hasClass('remove')) {
         remove_event_handler($target, booklist, elements, drawer);
-        return false;
       }
     });
 
