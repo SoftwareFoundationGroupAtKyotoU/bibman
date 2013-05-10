@@ -927,7 +927,9 @@ Bibman.init.load_callbacks.add(function() {
       return;
     }
 
-    add_publisher_unless_exists(publisher);
+    add_publisher_unless_exists(publisher).done(function () {
+      $('#book-register-publisher').val(publisher);
+    });
   });
 
 
