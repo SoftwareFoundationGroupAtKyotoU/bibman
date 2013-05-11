@@ -34,11 +34,15 @@ SCRIPTS[] =
 
 include DB_config
 
+.SUBDIRS: cron
+
 DEPENDS[] =
 
 foreach(filename => ..., $(SCRIPTS))
 	DEPENDS += $(OCamlProgram $(filename), $(COMMONS) $(filename))
 	export DEPENDS
+
+DEPENDS += $(OCamlProgram cron/update_sequence, $(COMMONS) cron/update_sequence)
 
 all: $(DEPENDS)
 
@@ -46,3 +50,4 @@ clean:
 	Clean()
 	rm -f $(SCRIPTS)
 	rm DB_config.omc
+	rm -f cron/update_sequence

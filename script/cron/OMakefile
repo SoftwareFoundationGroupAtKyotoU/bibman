@@ -1,0 +1,4 @@
+OCAMLINCLUDES += ../../lib
+
+clean:
+	Clean()
