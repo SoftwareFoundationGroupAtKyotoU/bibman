@@ -81,7 +81,7 @@ let alloc_label =
       | [Some i] -> Int64.to_string i
       | _ -> assert false
     in
-    Printf.sprintf "ω×%s＋%s" mult add
+    Printf.sprintf "ω%s＋%s" mult add
   in
 
   let body dbh bid =
