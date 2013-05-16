@@ -1,5 +1,40 @@
 'use strict';
 
+/* for compatibility with firefox old versions */
+if (!Object.keys) {
+  Object.keys = (function () {
+    var hasOwnProperty = Object.prototype.hasOwnProperty,
+    hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
+    dontEnums = [
+      'toString',
+      'toLocaleString',
+      'valueOf',
+      'hasOwnProperty',
+      'isPrototypeOf',
+      'propertyIsEnumerable',
+      'constructor'
+    ],
+    dontEnumsLength = dontEnums.length
+
+    return function (obj) {
+      if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) throw new TypeError('Object.keys called on non-object')
+
+      var result = []
+
+      for (var prop in obj) {
+        if (hasOwnProperty.call(obj, prop)) result.push(prop)
+      }
+
+      if (hasDontEnumBug) {
+        for (var i=0; i < dontEnumsLength; i++) {
+          if (hasOwnProperty.call(obj, dontEnums[i])) result.push(dontEnums[i])
+        }
+      }
+      return result
+    }
+  })()
+};
+
 var Bibman = {};
 
 Bibman.Handlebars = {};
@@ -17,8 +52,15 @@ Handlebars.registerHelper('template', function(name, context) {
   return new Handlebars.SafeString(sub_template(ctx));
 });
 
+Bibman.get_global_property = (function () {
+  var global = new Function('return this;')();
+  return function (prop) {
+    return global[prop];
+  };
+})();
 
 Bibman.log = (function () {
+  var console = Bibman.get_global_property('console');
   var log = console && console.log ? console.log : function () {};
   return function(action, msg) {
     log(action + ': ' + msg);
