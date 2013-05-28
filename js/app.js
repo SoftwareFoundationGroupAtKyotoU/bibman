@@ -1312,7 +1312,7 @@ Bibman.init.load_callbacks.add(function () {
     var content_type = 'application/x-www-form-urlencoded; charset=UTF-8';
     Bibman.API.logout({}, { contentType: content_type })
       .always(function () {
-        window.location = window.location.href.replace(/\/[^\/]+(?:\/#)?$/, '/');
+        window.location = window.location.href.replace(/\/[^\/]+\/?#?$/, '/');
       });
   });
 });
