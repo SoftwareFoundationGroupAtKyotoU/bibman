@@ -47,19 +47,17 @@ let certificate =
 
   let body dbh uid session_id =
     let expiration_opt =
-      BatList.first (
-        PGSQL(dbh)
-          "SELECT session_expiration FROM member WHERE user_id = $uid AND session_id = $session_id"
-      )
+      PGSQL(dbh)
+        "SELECT session_expiration FROM member WHERE user_id = $uid AND session_id = $session_id"
     in
     match expiration_opt with
-    | None -> raise_exception ()
-    | Some (expiration, _) -> begin
+    | [Some (expiration, _)] -> begin
       let module Calendar = CalendarLib.Calendar in
       let now = Calendar.now () in
       if compare now expiration <= 0 then ()
       else raise_exception ()
     end
+    | _ -> raise_exception ()
   in
 
   fun dbh -> function
