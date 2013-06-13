@@ -468,6 +468,8 @@ Bibman.BookList.UI = (function () {
     });
   }
 
+  var lending_template = Handlebars.compile($('#lending-item-template').html());
+
   return Bibman.Class({
     _constructor: function(booklist, booklist_template, template_option) {
       this._booklist = booklist;
@@ -537,7 +539,6 @@ Bibman.BookList.UI = (function () {
 
     _set_event_handler: function($list) {
       var self = this;
-      var lending_template = Handlebars.compile($('#lending-item-template').html());
 
       $list.children().each(function (idx) {
         var class_display_none = 'display-none';
@@ -668,13 +669,15 @@ Bibman.BookList.UI.Drawer = Bibman.Class({
   _constructor: function(booklist, template_option) {
     this._booklistUI = new Bibman.BookList.UI(
       booklist,
-      Handlebars.compile($('#book-item-template').html()),
+      this._template,
       template_option
     );
     this._booklistUI.on_fail_edit(function() {
       window.alert('入力に誤りがあります．');
     });
   },
+
+  _template: Handlebars.compile($('#book-item-template').html()),
 
   booklistUI: function() {
     return  this._booklistUI;
@@ -739,8 +742,8 @@ Bibman.BookList.UI.SearchDrawer = Bibman.Class({
 
 Bibman.BookList.UI.AllDrawer = Bibman.Class({
   _base: Bibman.BookList.UI.Drawer,
-  _constructor: function(booklist, booklist_template, $list) {
-    this._super(booklist, booklist_template);
+  _constructor: function(booklist, template_option, $list) {
+    this._super(booklist, template_option);
     this._booklist = booklist;
     this._$list = $list;
   },
@@ -1300,9 +1303,7 @@ Bibman.init.load_callbacks.add(function() {
       }
       else {
         var drawer = new Bibman.BookList.UI.AllDrawer(
-          booklist,
-          $('#book-item-template'),
-          $list_block
+          booklist, {}, $list_block
         );
         drawer.draw();
       }
