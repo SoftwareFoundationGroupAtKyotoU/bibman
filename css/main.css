@@ -267,3 +267,10 @@ input {
     z-index: 2;
     background: white;
 }
+
+#purchase-frame a.button {
+    display: block;
+    padding: 20px 0px 0px 0px;
+    text-decoration: none;
+    cursor: pointer;
+}

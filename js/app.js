@@ -854,6 +854,7 @@ Bibman.init.load_callbacks.add(function () {
 
 Bibman.init.load_callbacks.add(function() {
 
+  /* Book Search by external API */
   var ExternalBook = Bibman.Class({
     _constructor: function (title, author, publisher, publish_year) {
       this.items = {
@@ -895,6 +896,62 @@ Bibman.init.load_callbacks.add(function() {
     }
   });
 
+  function book_info(isbn) {
+    isbn = isbn.replace(/-/g, '');
+    return $.ajax({
+      url: 'https://www.googleapis.com/books/v1/volumes',
+      data: { q: 'isbn:' + isbn },
+      type: 'GET',
+      dataType: 'jsonp'
+    });
+  }
+
+  function search_book_info () {
+    var isbn = $('#book-register-isbn').val();
+    if (isbn === '') return;
+    book_info(isbn)
+      .fail(function() {
+        window.alert('書籍情報の取得に失敗しました．');
+      })
+      .done(function (json) {
+        if (json.totalItems !== 1) {
+          window.alert('対応する書籍が見つかりませんでした．');
+          return;
+        }
+
+        var volume_info = json.items[0].volumeInfo;
+        var external_book = new ExternalBook({
+          value: volume_info.title,
+          $: $('#book-register-title')
+        }, {
+          value: (volume_info.authors || []).join(', '),
+          $: $('#book-register-author')
+        }, {
+          value: volume_info.publisher,
+          $: $('#book-register-publisher')
+        }, {
+          value: (volume_info.publishedDate || '').substring(0, 4),
+          $: $('#book-register-publish-year')
+        });
+
+        var unspecified = external_book.names_of_unspecified();
+        if (unspecified.length !== 0) {
+          window.alert(
+            "以下の項目が取得できませんでした．\n" +
+              unspecified.join('，')
+          );
+        }
+
+        if (volume_info.publisher) {
+          add_publisher_unless_exists(volume_info.publisher).always(function () {
+            external_book.draw_specified();
+          });
+        }
+        else {
+          external_book.draw_specified();
+        }
+      });
+  }
 
   /* initialize form */
   /** set options in select form **/
@@ -986,6 +1043,17 @@ Bibman.init.load_callbacks.add(function() {
     });
   });
 
+  /** set event for book search by an external api **/
+  $('#book-register-isbn').keydown(function (e) {
+    /***  fired by pressing ENTER in book-register-isbn ***/
+    if (e.keyCode === 13) {
+      search_book_info();
+      e.preventDefault();
+    }
+  });
+
+  $('#book-register-search').click(search_book_info);
+
 
 
   function collect_form_data($form) {
@@ -1032,8 +1100,27 @@ Bibman.init.load_callbacks.add(function() {
     var book_id;
     var $dfd;
 
-    /* allocate label & download tex */
-    $('#purchase-frame-ok').click(function () {
+    /* set label */
+    $('#purchase-frame-set-label').click(function () {
+      var failure = function () {
+        window.alert('ラベルの設定に失敗しました．管理者にお知らせください．');
+      };
+
+      if ($('#purchase-frame-label-use-specified').is(':checked')) {
+        Bibman.API.edit_book({
+          id: book_id,
+          item: "label",
+          /* TODO: we may want labels to be empty, so they shouldn't be checked */
+          value: $('#purchase-frame-label').val()
+        }).fail(failure);
+      }
+      else {
+        Bibman.API.allocate_label({ id: book_id }).fail(failure);
+      }
+    });
+
+    /* download tex */
+    $('#purchase-frame-download').click(function () {
       var data = collect_form_data($('#purchase-frame'));
 
       if (data === null) {
@@ -1042,31 +1129,10 @@ Bibman.init.load_callbacks.add(function() {
       }
 
       data.id = book_id;
-
-      var success = function () {
-        download_tex(data);
-        $dfd.resolve();
-        hide_frame();
-      };
-      var failure = function () {
-        window.alert('ラベルの設定に失敗しました．管理者にお知らせください．');
-        $dfd.reject();
-      };
-
-      if ($('#purchase-frame-label-use-specified').is(':checked')) {
-        Bibman.API.edit_book({
-          id: book_id,
-          item: "label",
-          /* TODO: If label is wanted to be empty, it shouldn't be checked */
-          value: $('#purchase-frame-label').val()
-        }).done(success).fail(failure);
-      }
-      else {
-        Bibman.API.allocate_label(data).done(success).fail(failure);
-      }
+      download_tex(data);
     });
 
-    $('#purchase-frame-cancel').click(function () {
+    $('#purchase-frame-close').click(function () {
       $dfd.reject();
       hide_frame();
     });
@@ -1212,64 +1278,6 @@ Bibman.init.load_callbacks.add(function() {
       elements.show();
       drawer.list();
     }
-  });
-
-  /* Book Search by external API */
-  function book_info(isbn) {
-    isbn = isbn.replace(/-/g, '');
-    return $.ajax({
-      url: 'https://www.googleapis.com/books/v1/volumes',
-      data: { q: 'isbn:' + isbn },
-      type: 'GET',
-      dataType: 'jsonp'
-    });
-  }
-
-  $('#book-register-search').click(function(e) {
-    var isbn = $('#book-register-isbn').val();
-    if (isbn === '') return;
-    book_info(isbn)
-      .fail(function() {
-        window.alert('書籍情報の取得に失敗しました．');
-      })
-      .done(function (json) {
-        if (json.totalItems !== 1) {
-          window.alert('対応する書籍が見つかりませんでした．');
-          return;
-        }
-
-        var volume_info = json.items[0].volumeInfo;
-        var external_book = new ExternalBook({
-          value: volume_info.title,
-          $: $('#book-register-title')
-        }, {
-          value: (volume_info.authors || []).join(', '),
-          $: $('#book-register-author')
-        }, {
-          value: volume_info.publisher,
-          $: $('#book-register-publisher')
-        }, {
-          value: (volume_info.publishedDate || '').substring(0, 4),
-          $: $('#book-register-publish-year')
-        });
-
-        var unspecified = external_book.names_of_unspecified();
-        if (unspecified.length !== 0) {
-          window.alert(
-            "以下の項目が取得できませんでした．\n" +
-              unspecified.join('，')
-          );
-        }
-
-        if (volume_info.publisher) {
-          add_publisher_unless_exists(volume_info.publisher).always(function () {
-            external_book.draw_specified();
-          });
-        }
-        else {
-          external_book.draw_specified();
-        }
-      });
   });
 });
 
