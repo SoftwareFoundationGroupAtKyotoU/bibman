@@ -30,20 +30,20 @@ let by_keywords =
       PGSQL(dbh) "SELECT * FROM author WHERE author_id IN $@aids"
     in
     let isbn_to_aids = hash_of_relation isbn_aid fst snd in
-    let aid_to_author = hash_of_list authors fst snd in
+    let aid_to_author = hash_of_map authors fst snd in
     let isbn_authors =
       List.map (fun isbn ->
         let aids = BatHashtbl.find isbn_to_aids isbn in
         (isbn, List.map (Hashtbl.find aid_to_author) aids))
         isbns
     in
-    hash_of_list isbn_authors fst snd
+    hash_of_map isbn_authors fst snd
   in
 
   let jsonify dbh books isbn_to_entry isbn_to_authors =
     let pid_to_publisher =
       let publishers = debug "publishers"; PGSQL(dbh) "SELECT * from publisher" in
-      hash_of_list publishers fst snd
+      hash_of_map publishers fst snd
     in
     Some (`List (
       List.map
@@ -78,7 +78,7 @@ let by_keywords =
           entries keywords
       in
       let isbn_to_hit_entry =
-        hash_of_list hit_entries isbn_of_entry (fun x -> x)
+        hash_of_map hit_entries isbn_of_entry (fun x -> x)
       in
       let hit_books =
         List.filter

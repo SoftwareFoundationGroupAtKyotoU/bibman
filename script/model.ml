@@ -10,7 +10,7 @@ let hash_of_relation ?(seed=128) rel keyfun valfun =
   hash
 ;;
 
-let hash_of_list ?(seed=128) l keyfun valfun =
+let hash_of_map ?(seed=128) l keyfun valfun =
   let hash = BatHashtbl.create seed in
   List.iter
     (fun x ->

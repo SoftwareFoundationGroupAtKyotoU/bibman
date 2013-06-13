@@ -1192,7 +1192,7 @@ Bibman.init.load_callbacks.add(function() {
   }
 
   /*** wish-booklist ***/
-  function remove_book_from_wish_book(id, booklist, elements, drawer) {
+  function remove_book_from_wishbook(id, booklist, elements, drawer) {
     booklist.remove(id);
     if (booklist.count() === 0) {
       elements.hide();
@@ -1224,7 +1224,7 @@ Bibman.init.load_callbacks.add(function() {
         var id = $target.parents('.book-item').data('book-id');
 
         purchase(id).done(function () {
-          remove_book_from_wish_book(id, booklist, elements, drawer);
+          remove_book_from_wishbook(id, booklist, elements, drawer);
         });
       }
     });
@@ -1237,7 +1237,7 @@ Bibman.init.load_callbacks.add(function() {
     var id = $target.parents('.book-item').data('book-id');
     Bibman.API.remove_wishbook({ id: id })
       .done(function() {
-        remove_book_from_wish_book(id, booklist, elements, drawer);
+        remove_book_from_wishbook(id, booklist, elements, drawer);
       })
       .fail(function() {
         window.alert('ほしい本の削除に失敗しました．');

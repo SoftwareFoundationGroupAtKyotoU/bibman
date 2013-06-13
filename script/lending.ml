@@ -3,7 +3,7 @@ open Model
 
 let uid_to_account dbh =
   let users = PGSQL(dbh) "SELECT user_id, account FROM member" in
-  hash_of_list users fst snd
+  hash_of_map users fst snd
 ;;
 
 let string_of_date : CalendarLib.Date.t -> string  =
