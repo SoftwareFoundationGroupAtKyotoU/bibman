@@ -38,6 +38,7 @@ type spec = [
 | `NonEmpty
 | `Int32
 | `Symbol of string list
+| `Action of (string * (string * spec) list) list
 ]
 ;;
 
@@ -58,6 +59,9 @@ let assert_arguments =
               when (try ignore(Int32.of_string v); true with Failure _ -> false)
                 -> ()
           | `Symbol l when List.exists ((=) v) l -> ()
+          | `Action l
+              when List.mem_assoc v l && (iter cgi (List.assoc v l); true)
+                -> ()
           | _ -> raise (Invalid_argument param)
         ) args;
         iter cgi t

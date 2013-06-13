@@ -14,26 +14,28 @@ if (!Object.keys) {
       'propertyIsEnumerable',
       'constructor'
     ],
-    dontEnumsLength = dontEnums.length
+    dontEnumsLength = dontEnums.length;
 
     return function (obj) {
-      if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) throw new TypeError('Object.keys called on non-object')
+      if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) {
+        throw new TypeError('Object.keys called on non-object');
+      }
 
-      var result = []
+      var result = [];
 
       for (var prop in obj) {
-        if (hasOwnProperty.call(obj, prop)) result.push(prop)
+        if (hasOwnProperty.call(obj, prop)) result.push(prop);
       }
 
       if (hasDontEnumBug) {
         for (var i=0; i < dontEnumsLength; i++) {
-          if (hasOwnProperty.call(obj, dontEnums[i])) result.push(dontEnums[i])
+          if (hasOwnProperty.call(obj, dontEnums[i])) result.push(dontEnums[i]);
         }
       }
-      return result
-    }
-  })()
-};
+      return result;
+    };
+  })();
+}
 
 var Bibman = {};
 
@@ -186,8 +188,8 @@ Bibman.API.ROOT = './../api/';
       settings: { dataType: 'text' }
     },
     { name: 'my_book', url: 'my_book.cgi', type: 'GET' },
-    { name: 'add', url: 'add.cgi', type: 'POST',
-      settings: { dataType: 'text' }
+    { name: 'add_publisher', url: 'publisher.cgi', type: 'POST',
+      settings: { data: { action: 'add' }, dataType: 'text' }
     },
     { name: 'remove_wishbook', url: 'wish_book.cgi', type: 'POST',
       settings: { data: { action: 'remove' }, dataType: 'text' }
@@ -854,6 +856,44 @@ Bibman.init.load_callbacks.add(function () {
 
 Bibman.init.load_callbacks.add(function() {
 
+  /* publisher */
+  function add_publisher_unless_exists(publisher) {
+    var $publisher = $('#book-register-publisher');
+    var $dfd = $.Deferred();
+
+    var found = false;
+    $publisher.find('option').each(function() {
+      found = found || $(this).val() === publisher;
+    });
+    if (found) {
+      $dfd.resolve();
+      return $dfd;
+    }
+
+    if (!window.confirm(
+      '出版社 "' + publisher + '" を登録します．よろしいですか？'
+    )) {
+      $dfd.reject();
+      return $dfd;
+    }
+
+    Bibman.API.add_publisher({ publisher: publisher })
+      .done(function() {
+        var $option = $('<option />');
+        $option.val(publisher);
+        $option.text(publisher);
+        $publisher.append($option);
+
+        $dfd.resolve();
+      })
+      .fail(function() {
+        window.alert('出版社の登録に失敗しました．');
+        $dfd.reject();
+      });
+
+    return $dfd;
+  }
+
   /* Book Search by external API */
   var ExternalBook = Bibman.Class({
     _constructor: function (title, author, publisher, publish_year) {
@@ -994,43 +1034,6 @@ Bibman.init.load_callbacks.add(function() {
   })();
 
   /** prepare to add publisher **/
-  function add_publisher_unless_exists(publisher) {
-    var $publisher = $('#book-register-publisher');
-    var $dfd = $.Deferred();
-
-    var found = false;
-    $publisher.find('option').each(function() {
-      found = found || $(this).val() === publisher;
-    });
-    if (found) {
-      $dfd.resolve();
-      return $dfd;
-    }
-
-    if (!window.confirm(
-      '出版社 "' + publisher + '" を登録します．よろしいですか？'
-    )) {
-      $dfd.reject();
-      return $dfd;
-    }
-
-    Bibman.API.add({ item: "publisher", value: publisher })
-      .done(function() {
-        var $option = $('<option />');
-        $option.val(publisher);
-        $option.text(publisher);
-        $publisher.append($option);
-
-        $dfd.resolve();
-      })
-      .fail(function() {
-        window.alert('出版社の登録に失敗しました．');
-        $dfd.reject();
-      });
-
-    return $dfd;
-  }
-
   $('#add-publisher').click(function () {
     var publisher = $('#add-publisher-name').val();
     if (publisher === '') {
@@ -1154,7 +1157,12 @@ Bibman.init.load_callbacks.add(function() {
     };
   })();
 
-  /* book register */
+
+  /* initialize form parts related to wishbook */
+
+  /** functions for events **/
+
+  /*** book register ***/
   function register_event_handler(e, booklist, drawer, elements) {
     var data = collect_form_data($(e.target));
     if (data === null) {
@@ -1180,7 +1188,7 @@ Bibman.init.load_callbacks.add(function() {
       });
   }
 
-  /* wish-booklist */
+  /*** wish-booklist ***/
   function remove_book_from_wish_book(id, booklist, elements, drawer) {
     booklist.remove(id);
     if (booklist.count() === 0) {
@@ -1233,7 +1241,7 @@ Bibman.init.load_callbacks.add(function() {
       });
   }
 
-  /* initialize form parts related to wishbook */
+  /** after returning wish-book list  **/
   Bibman.API.wishbook().done(function(result) {
     var booklist = new Bibman.BookList(Bibman.user, { books: result });
 
@@ -1256,7 +1264,7 @@ Bibman.init.load_callbacks.add(function() {
 
     set_purchase_event_handler(booklist, drawer, elements);
 
-    /** remove event **/
+    /* remove event */
     $list.click(function(e) {
       var $target = $(e.target);
       if ($target.hasClass('remove')) {
@@ -1264,13 +1272,13 @@ Bibman.init.load_callbacks.add(function() {
       }
     });
 
-    /** book registration event **/
+    /* book registration event */
     $('#book-register-form').submit(function (e) {
       register_event_handler(e, booklist, drawer, elements);
       return false;
     });
 
-    /** show wish books if exist **/
+    /* show wish books if exist */
     if (booklist.count() === 0) {
       elements.hide();
     }

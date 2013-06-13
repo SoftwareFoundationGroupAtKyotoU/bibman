@@ -28,7 +28,7 @@ APIS[] =
 	search
 	wish_book
 	tex
-	add
+	publisher
 	regen_password
 	allocate_label
 
