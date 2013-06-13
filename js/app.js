@@ -1166,8 +1166,8 @@ Bibman.init.load_callbacks.add(function() {
   /** functions for events **/
 
   /*** book register ***/
-  function register_event_handler(e, booklist, drawer, elements) {
-    var data = collect_form_data($(e.target));
+  function register_event_handler($target, booklist, drawer, elements) {
+    var data = collect_form_data($target);
     if (data === null) {
       window.alert('未入力の項目があります．');
       return;
@@ -1276,8 +1276,13 @@ Bibman.init.load_callbacks.add(function() {
     });
 
     /* book registration event */
-    $('#book-register-form').submit(function (e) {
-      register_event_handler(e, booklist, drawer, elements);
+    $('#book-register-submit').click(function () {
+      register_event_handler(
+        $('#book-register-form'),
+        booklist,
+        drawer,
+        elements
+      );
       return false;
     });
 
