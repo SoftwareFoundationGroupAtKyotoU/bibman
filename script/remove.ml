@@ -48,6 +48,8 @@ let entry =
         PGSQL(dbh) "SELECT author_id FROM rel_entry_authors WHERE isbn = $isbn"
       in
 
+      assert (not (BatList.is_empty aids));
+
       (* remove relationship to the isbn *)
       PGSQL(dbh) "DELETE FROM rel_entry_authors WHERE isbn = $isbn";
 
@@ -56,8 +58,13 @@ let entry =
       in
 
       (* remove author unless he/she is live *)
-      PGSQL(dbh)
-        "DELETE FROM author WHERE author_id IN $@aids AND author_id NOT IN $@live_authors"
+      let dead_aids =
+        List.filter
+          (fun aid -> not (List.exists ((=) aid) live_authors)) aids
+      in
+      if not (BatList.is_empty dead_aids) then
+        PGSQL(dbh)
+          "DELETE FROM author WHERE author_id IN $@dead_aids"
     in
 
     (* remove entry *)
