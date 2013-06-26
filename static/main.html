@@ -72,6 +72,16 @@
               {{template "edit-item-template" value=book.author name="author" type="text" }}
             </span>
           </div>
+          <div>
+            <span>
+              <span class="item-name">配置場所</span>
+              {{template "edit-item-template" value=book.location name="location" type="select" }}
+            </span>
+            <span>
+              <span class="item-name">ラベル</span>
+              {{template "edit-item-template" value=book.label name="label" type="text" }}
+            </span>
+          </div>
           <span class="lending">
             {{#unless ../option.deny_lending}}
             {{template "lending-item-template" context=lending}}
@@ -95,10 +105,6 @@
                   <td>
                     <span>
                       {{template "edit-item-template" value=book.kind name="kind" type="select" }}
-                    </span>
-                    <span>
-                      <span class="label">ラベル</span>
-                      {{template "edit-item-template" value=book.label name="label" type="text" }}
                     </span>
                   </td>
                 </tr>
@@ -275,7 +281,7 @@
       <div id="purchase-frame" style="visibility: hidden">
         <h4>ラベル</h4>
         <form>
-          <input id="purchase-frame-label-use-specified" type="checkbox" class="label" data-item="use-specified" data-ignore="1" />
+          <input id="purchase-frame-label-use-specified" type="checkbox" data-item="use-specified" data-ignore="1" />
           <span class="note">ラベルを手動で設定</span>
           <input id="purchase-frame-label" type="text" class="text" data-item="label" data-value="" disabled="disabled" data-disabled-value="なし" data-ignore="1" style="width: 200px; margin: auto" />
         </form>
