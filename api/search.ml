@@ -23,11 +23,11 @@
 open BibmanNet
 ;;
 
-let query (cgi: Netcgi.cgi) =
+let query (cgi: Netcgi.cgi) query =
   let queries =
     BatList.sort_unique
       String.compare
-      (BatString.nsplit (cgi # argument_value "query") " ")
+      (BatString.nsplit query " ")
   in
   redirect_to_script
     cgi
@@ -35,11 +35,11 @@ let query (cgi: Netcgi.cgi) =
     ([ "keyword"; ] @ queries)
 ;;
 
-let id (cgi: Netcgi.cgi) =
+let id (cgi: Netcgi.cgi) id =
   redirect_to_script
     cgi
     Config.script_search
-    [ "id"; cgi # argument_value "id"; ]
+    [ "id"; id; ]
 ;;
 
 let actions = [
@@ -51,9 +51,10 @@ let actions = [
 let main (cgi: Netcgi.cgi) _ =
   try
     List.iter (function (param, action) ->
-      if cgi # argument_exists param &&
-        not (BatString.is_empty (cgi # argument_value param)) then begin
-          ignore (action cgi);
+      if cgi # argument_exists param then
+        let p = cgi # argument_value param in
+        if not (BatString.is_empty p) then begin
+          ignore (action cgi p);
           raise Exit
         end)
       actions;
