@@ -227,13 +227,33 @@ Bibman.API.ROOT = './../api/';
 })();
 
 
-/* Classes for book list */
+/* Author */
 Bibman.Author = {};
 Bibman.Author.join = function (author) {
   author.sort(function (x, y) { return x.localeCompare(y); });
   return author.join(', ');
 };
+Bibman.Author.normalize = function (author) {
+  var arr = author.split(',').map(function (a) { return a.trim() });
+  return Bibman.Author.join(arr);
+};
 
+/* Entry */
+Bibman.Entry = {};
+Bibman.Entry.name_of_item = (function () {
+  var assoc = {
+    isbn:         'ISBN',
+    title:        'タイトル',
+    publisher:    '出版社',
+    publish_year: '出版年',
+    author:       '著者'
+  };
+
+  return function (item) { return assoc[item]; };
+})();
+
+
+/* Classes for book list */
 Bibman.BookList = Bibman.Class({
   _constructor: function(user, books_info) {
 
@@ -909,10 +929,10 @@ Bibman.init.load_callbacks.add(function() {
   var ExternalBook = Bibman.Class({
     _constructor: function (title, author, publisher, publish_year) {
       this.items = {
-        title: this._create_item('タイトル', title),
-        author: this._create_item('著者', author),
-        publisher: this._create_item('出版社', publisher),
-        publish_year: this._create_item('出版年', publish_year)
+        title: this._create_item(title),
+        author: this._create_item(author),
+        publisher: this._create_item(publisher),
+        publish_year: this._create_item(publish_year)
       };
     },
 
@@ -920,28 +940,49 @@ Bibman.init.load_callbacks.add(function() {
       return typeof val === 'string' && val !== '';
     },
 
-    _create_item: function (name, param) {
+    _create_item: function (param) {
       return {
-        name: name,
         specified: this._specified_as(param.value),
         value: param.value || '',
         $: param.$
       };
     },
 
-    _items: function () {
+    _assoc_of_items: function () {
       var items = this.items;
-      return Object.keys(items).map(function (key) { return items[key]; });
+      return Object.keys(items).map(function (key) {
+        return { key: key, value: items[key] };
+      });
+    },
+
+    _specified_arr: function () {
+      return this._assoc_of_items()
+        .filter(function (x) { return x.value.specified; });
+    },
+
+    _unspecified_arr: function () {
+      return this._assoc_of_items()
+        .filter(function (x) { return !(x.value.specified); });
     },
 
     names_of_unspecified: function () {
-      return this._items()
-        .filter(function (item) { return !item.specified; })
-        .map(function (item) { return item.name; });
+      return this._unspecified_arr()
+        .map(function (x) {
+          return Bibman.Entry.name_of_item(x.key);
+        });
+    },
+
+    to_entry: function () {
+      var obj = {};
+      this._specified_arr().forEach(function (x) {
+        obj[x.key] = x.value.value;
+      });
+      return obj;
     },
 
     draw_specified: function () {
-      this._items().forEach(function (item) {
+      this._specified_arr().forEach(function (x) {
+        var item = x.value;
         item.$.val(item.value);
       });
     }
@@ -957,8 +998,11 @@ Bibman.init.load_callbacks.add(function() {
     });
   }
 
-  /* check whether external entry information is the same as internal */
-  function check_ext_against_int (isbn, external_book) {
+  /* check whether an entry is the same as internal */
+  function check_entry_against_internal (isbn, checked_entry) {
+
+    var $dfd = $.Deferred();
+
     Bibman.API.search_book({ isbn: isbn })
       .done(function (entry) {
 
@@ -966,13 +1010,13 @@ Bibman.init.load_callbacks.add(function() {
         entry.publish_year = entry.publish_year + ''; // stringify
 
         var inequal_names =
-          Object.keys(external_book.items)
-            .filter(function (key) {
-              var item = external_book.items[key];
-              return item.specified && item.value !== entry[key];
+          Object.keys(entry)
+            .filter(function (item) {
+              return checked_entry.hasOwnProperty(item) &&
+                checked_entry[item] !== entry[item];
             })
-            .map(function (key) {
-              return external_book.items[key].name;
+            .map(function (item) {
+              return Bibman.Entry.name_of_item(item);
             });
 
         if (inequal_names.length !== 0) {
@@ -980,8 +1024,15 @@ Bibman.init.load_callbacks.add(function() {
             "以下の項目が既に登録されている情報と異なります．\n" +
               inequal_names.join(', ')
           );
+          $dfd.reject();
         }
-    });
+        else {
+          $dfd.resolve();
+        }
+      })
+      .fail(function () { $dfd.resolve(); });
+
+    return $dfd;
   }
 
   function search_book_info () {
@@ -1012,7 +1063,7 @@ Bibman.init.load_callbacks.add(function() {
           $: $('#book-register-publish-year')
         });
 
-        check_ext_against_int(isbn, external_book);
+        check_entry_against_internal(isbn, external_book.to_entry());
 
         var unspecified = external_book.names_of_unspecified();
         if (unspecified.length !== 0) {
@@ -1210,22 +1261,24 @@ Bibman.init.load_callbacks.add(function() {
       return;
     }
 
-    Bibman.API.register_book(data)
-      .done(function(id) {
-        if (data.status === Bibman.config.book.status.purchase) {
-          purchase(id);
-        }
-        else {
-          Bibman.API.search_book({ id: id }).done(function (data) {
-            booklist.unshift_book(data);
-            drawer.draw(0, booklist.count());
-            elements.show();
-          });
-        }
-      })
-      .fail(function() {
-        window.alert('入力に誤りがあるか，もしくは既に登録済みです．');
-      });
+    check_entry_against_internal(data.isbn, data).done(function () {
+      Bibman.API.register_book(data)
+        .done(function(id) {
+          if (data.status === Bibman.config.book.status.purchase) {
+            purchase(id);
+          }
+          else {
+            Bibman.API.search_book({ id: id }).done(function (data) {
+              booklist.unshift_book(data);
+              drawer.draw(0, booklist.count());
+              elements.show();
+            });
+          }
+        })
+        .fail(function() {
+          window.alert('入力に誤りがあるか，もしくは既に登録済みです．');
+        });
+    });
   }
 
   /*** wish-booklist ***/
