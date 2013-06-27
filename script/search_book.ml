@@ -94,9 +94,23 @@ let by_id =
   | _ -> assert false
 ;;
 
+let by_isbn =
+  let body dbh isbn =
+    match entry_info_of_isbn dbh isbn with
+    | Some (entry, authors, publisher) ->
+      jsonify_entry entry authors publisher
+    | None -> raise (Bibman.Invalid_argument "isbn")
+  in
+
+  fun dbh -> function
+  | isbn :: [] -> Some (body dbh isbn)
+  | _ -> assert false
+;;
+
 let actions = [
   ("keyword", ([`String "keyword"; `Any (`String "keywords ...")], by_keywords));
   ("id", ([`Int32 "book-id"], by_id));
+  ("isbn", ([`NonEmpty "isbn"], by_isbn));
 ]
 ;;
 

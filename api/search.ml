@@ -16,6 +16,15 @@
       location: string
      }
 
+  isbn:
+    {
+      title: string,
+      publish_year: number,
+      author: [ string ],
+      publisher: string,
+      isbn: string,
+    }
+
   query:
     [ { id: number, ... /* same as above */ } , ...]
 *)
@@ -42,9 +51,16 @@ let id (cgi: Netcgi.cgi) id =
     [ "id"; id; ]
 ;;
 
+let isbn (cgi: Netcgi.cgi) isbn =
+  redirect_to_script
+    cgi
+    Config.script_search
+    [ "isbn"; isbn; ]
+
 let actions = [
   ("query", query);
   ("id", id);
+  ("isbn", isbn);
 ]
 ;;
 

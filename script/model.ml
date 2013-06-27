@@ -97,14 +97,10 @@ let normalize_isbn =
     if correct isbn then Some isbn else None
 ;;
 
-let book_info_of_book_id dbh id =
-  match first (PGSQL(dbh) "SELECT * FROM book WHERE book_id = $id") with
+let entry_info_of_isbn dbh isbn =
+  match first (PGSQL(dbh) "SELECT * FROM entry WHERE isbn = $isbn") with
   | None -> None
-  | Some book -> begin
-    let isbn = isbn_of_book book in
-    let entry =
-      BatList.first (PGSQL(dbh) "SELECT * FROM entry WHERE isbn = $isbn")
-    in
+  | Some entry -> begin
     let authors =
       let aids =
         PGSQL(dbh) "SELECT author_id FROM rel_entry_authors WHERE isbn = $isbn"
@@ -116,24 +112,42 @@ let book_info_of_book_id dbh id =
       BatList.first
         (PGSQL(dbh) "SELECT name FROM publisher WHERE publisher_id = $pid")
     in
-    Some (book, entry, authors, publisher)
+    Some (entry, authors, publisher)
   end
 ;;
 
-let jsonify_book book entry authors publisher =
+let book_info_of_book_id dbh id =
+  match first (PGSQL(dbh) "SELECT * FROM book WHERE book_id = $id") with
+  | None -> None
+  | Some book -> begin
+    let isbn = isbn_of_book book in
+    match entry_info_of_isbn dbh isbn with
+    | Some (entry, authors, publisher) -> Some (book, entry, authors, publisher)
+    | None -> assert false
+  end
+;;
+
+let jsonify_entry entry authors publisher =
   let authors = List.map (fun author -> `String author) authors in
   `Assoc [
-    ("id", `Int (Int32.to_int (id_of_book book)));
     ("title", `String (title_of_entry entry));
     ("publish_year", `Int (Int32.to_int (publish_year_of_entry entry)));
     ("author", `List authors);
     ("publisher", `String publisher);
     ("isbn", `String (isbn_of_entry entry));
-    ("kind", `String (kind_of_book book));
-    ("status", `String (status_of_book book));
-    ("label", `String (label_of_book book));
-    ("location", `String (location_of_book book));
   ]
+
+let jsonify_book book entry authors publisher =
+  match jsonify_entry entry authors publisher with
+  | `Assoc l ->
+    `Assoc ([
+      ("id", `Int (Int32.to_int (id_of_book book)));
+      ("kind", `String (kind_of_book book));
+      ("status", `String (status_of_book book));
+      ("label", `String (label_of_book book));
+      ("location", `String (location_of_book book));
+    ] @ l)
+  | _ -> assert false
 ;;
 
 let json_of_book_id dbh bid =

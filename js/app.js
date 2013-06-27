@@ -957,6 +957,33 @@ Bibman.init.load_callbacks.add(function() {
     });
   }
 
+  /* check whether external entry information is the same as internal */
+  function check_ext_against_int (isbn, external_book) {
+    Bibman.API.search_book({ isbn: isbn })
+      .done(function (entry) {
+
+        entry.author = Bibman.Author.join(entry.author);
+        entry.publish_year = entry.publish_year + ''; // stringify
+
+        var inequal_names =
+          Object.keys(external_book.items)
+            .filter(function (key) {
+              var item = external_book.items[key];
+              return item.specified && item.value !== entry[key];
+            })
+            .map(function (key) {
+              return external_book.items[key].name;
+            });
+
+        if (inequal_names.length !== 0) {
+          window.alert(
+            "以下の項目が既に登録されている情報と異なります．\n" +
+              inequal_names.join(', ')
+          );
+        }
+    });
+  }
+
   function search_book_info () {
     var isbn = $('#book-register-isbn').val();
     if (isbn === '') return;
@@ -984,6 +1011,8 @@ Bibman.init.load_callbacks.add(function() {
           value: (volume_info.publishedDate || '').substring(0, 4),
           $: $('#book-register-publish-year')
         });
+
+        check_ext_against_int(isbn, external_book);
 
         var unspecified = external_book.names_of_unspecified();
         if (unspecified.length !== 0) {
