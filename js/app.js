@@ -228,6 +228,12 @@ Bibman.API.ROOT = './../api/';
 
 
 /* Classes for book list */
+Bibman.Author = {};
+Bibman.Author.join = function (author) {
+  author.sort(function (x, y) { return x.localeCompare(y); });
+  return author.join(', ');
+};
+
 Bibman.BookList = Bibman.Class({
   _constructor: function(user, books_info) {
 
@@ -237,7 +243,7 @@ Bibman.BookList = Bibman.Class({
     this._history_hash = {};
 
     this.books.forEach(function(book) {
-      book.author = book.author.join(', ');
+      book.author = Bibman.Author.join(book.author);
     });
 
     var self = this;
@@ -969,7 +975,7 @@ Bibman.init.load_callbacks.add(function() {
           value: volume_info.title,
           $: $('#book-register-title')
         }, {
-          value: (volume_info.authors || []).join(', '),
+          value: Bibman.Author.join(volume_info.authors || []),
           $: $('#book-register-author')
         }, {
           value: volume_info.publisher,
