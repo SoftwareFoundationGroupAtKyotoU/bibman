@@ -145,7 +145,9 @@ Bibman.API.ROOT = './../api/';
     Bibman.API[api.name] = function (data, opt_settings) {
       opt_settings = opt_settings || {};
 
-      var settings = _.clone(default_settings);
+      // copy object deeply
+      var settings = JSON.parse(JSON.stringify(default_settings));
+
       _.extend(settings.data, data);
       _.extend(settings, opt_settings);
 
