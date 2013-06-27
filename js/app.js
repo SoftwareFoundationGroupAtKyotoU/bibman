@@ -947,7 +947,7 @@ Bibman.init.load_callbacks.add(function() {
     }
   });
 
-  function book_info(isbn) {
+  function external_book_info(isbn) {
     isbn = isbn.replace(/-/g, '');
     return $.ajax({
       url: 'https://www.googleapis.com/books/v1/volumes',
@@ -960,7 +960,7 @@ Bibman.init.load_callbacks.add(function() {
   function search_book_info () {
     var isbn = $('#book-register-isbn').val();
     if (isbn === '') return;
-    book_info(isbn)
+    external_book_info(isbn)
       .fail(function() {
         window.alert('書籍情報の取得に失敗しました．');
       })
