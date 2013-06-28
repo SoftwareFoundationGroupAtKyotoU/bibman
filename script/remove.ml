@@ -6,6 +6,19 @@ let remove_book dbh bid =
   PGSQL(dbh) "DELETE FROM wish_book WHERE book_id = $bid"
 ;;
 
+(* this feature should not be published in web because not guarded *)
+let book =
+  let body dbh bid =
+    match Model.book_exists dbh bid with
+    | true -> remove_book dbh bid
+    | false -> raise (Invalid_argument "book-id")
+  in
+
+  fun dbh -> function
+  | bid :: [] -> body dbh (Int32.of_string bid); None
+  | _ -> assert false
+;;
+
 let wish_book =
 
   let body dbh bid =
@@ -83,6 +96,7 @@ let entry =
 let actions = [
   ("wish_book", ([ `Int32 "book-id"; ], wish_book));
   ("entry", ([ `NonEmpty "isbn" ], entry));
+  ("book", ([ `Int32 "book-id"; ], book));
 ]
 ;;
 
