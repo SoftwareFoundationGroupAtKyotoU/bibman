@@ -91,7 +91,7 @@ let lend =
         "INSERT INTO lending (book_id, user_id, start_date, due_date) VALUES ($bid, $uid, $start_date, $due_date)"
     end
     | true -> begin
-      (match exists (PGSQL(dbh) "SELECT 1 FROM book WHERE book_id = $bid") with
+      (match book_exists dbh bid with
       | true ->
         prerr_endline "The book has been lent already"
       | false ->

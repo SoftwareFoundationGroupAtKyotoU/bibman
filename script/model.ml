@@ -78,6 +78,10 @@ let isbn_exists dbh isbn =
   exists (PGSQL (dbh) "SELECT 1 FROM entry WHERE isbn = $isbn")
 ;;
 
+let book_exists dbh bid =
+  exists (PGSQL(dbh) "SELECT 1 FROM book WHERE book_id = $bid")
+;;
+
 let normalize_isbn =
   let correct isbn =
     if Str.string_match (Str.regexp "[^0-9]") isbn 0 then

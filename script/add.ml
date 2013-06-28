@@ -71,7 +71,7 @@ let book =
 
 let wish_book =
   let body dbh uid bid =
-    match exists (PGSQL(dbh) "SELECT 1 FROM book WHERE book_id = $bid") with
+    match book_exists dbh bid with
     | false -> raise (Bibman.Invalid_argument "book-id")
     | true -> begin
       match
