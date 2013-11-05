@@ -72,16 +72,16 @@ let purchase =
 
 let alloc_label =
   let allocate_label dbh =
-    let mult = Int64.to_string (BatList.first (
-      PGSQL(dbh) "SELECT last_value from label_multiplicative_sequence"
+    let year = Int64.to_string (BatList.first (
+      PGSQL(dbh) "SELECT last_value from label_year_sequence"
     ))
     in
-    let add =
-      match PGSQL(dbh) "SELECT nextval('label_additive_sequence')" with
+    let suffix_id =
+      match PGSQL(dbh) "SELECT nextval('label_suffix_id_sequence')" with
       | [Some i] -> Int64.to_string i
       | _ -> assert false
     in
-    Printf.sprintf "ω%s＋%s" mult add
+    Printf.sprintf "%s-%s" year suffix_id
   in
 
   let body dbh bid =

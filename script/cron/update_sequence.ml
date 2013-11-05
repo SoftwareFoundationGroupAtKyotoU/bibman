@@ -6,6 +6,6 @@ let () =
     ~database: Config.db_database
     ()
   in
-  ignore (PGSQL (dbh) "SELECT nextval('label_multiplicative_sequence')");
-  ignore (PGSQL (dbh) "SELECT setval('label_additive_sequence', 0, false)")
+  ignore (PGSQL (dbh) "SELECT nextval('label_year_sequence')");
+  ignore (PGSQL (dbh) "SELECT setval('label_suffix_id_sequence', 1, false)")
 

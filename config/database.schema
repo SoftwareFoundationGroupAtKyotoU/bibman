@@ -152,10 +152,10 @@ ALTER SEQUENCE lab8_user_user_id_seq OWNED BY member.user_id;
 
 
 --
--- Name: label_additive_sequence; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: label_suffix_id_sequence; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE label_additive_sequence
+CREATE SEQUENCE label_suffix_id_sequence
     START WITH 0
     INCREMENT BY 1
     NO MAXVALUE
@@ -163,13 +163,13 @@ CREATE SEQUENCE label_additive_sequence
     CACHE 1;
 
 
-ALTER TABLE public.label_additive_sequence OWNER TO postgres;
+ALTER TABLE public.label_suffix_id_sequence OWNER TO postgres;
 
 --
--- Name: label_multiplicative_sequence; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: label_year_sequence; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE label_multiplicative_sequence
+CREATE SEQUENCE label_year_sequence
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
@@ -177,7 +177,7 @@ CREATE SEQUENCE label_multiplicative_sequence
     CACHE 1;
 
 
-ALTER TABLE public.label_multiplicative_sequence OWNER TO postgres;
+ALTER TABLE public.label_year_sequence OWNER TO postgres;
 
 --
 -- Name: lending; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
