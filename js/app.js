@@ -1209,7 +1209,9 @@ Bibman.init.load_callbacks.add(function() {
         }).fail(failure);
       }
       else {
-        Bibman.API.allocate_label({ id: book_id }).fail(failure);
+        Bibman.API.allocate_label({ id: book_id }).done(function () {
+          window.alert('ラベルを設定しました．');
+        }).fail(failure);
       }
     });
 
