@@ -44,7 +44,7 @@ let () = run
     ("publisher", `NonEmpty);
     ("kind", `Symbol Config.kind_values);
     ("status", `Symbol Config.status_values);
-    ("location", `Symbol Config.location_values);
+    ("location", `Symbol Config.location_names);
   ]
   (certification_check_wrapper main)
 ;;

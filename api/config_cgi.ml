@@ -54,7 +54,7 @@ let main (cgi: Netcgi.cgi) : unit =
           ("purchase", `String Config.status_purchase);
         ]);
         ("location", `Assoc [
-          ("values", json_of_string_list Config.location_values);
+          ("values", json_of_string_list Config.location_names);
         ]);
       ]);
       ("tex", `Assoc [

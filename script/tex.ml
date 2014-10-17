@@ -4,7 +4,7 @@ let tosho =
       PGSQL(dbh) "SELECT location FROM book WHERE book_id = $bid"
     ) in
     try
-      List.assoc loc Config.location_proper_assoc
+      Config.Map.find loc Config.locations
     with
       Not_found -> loc
   in

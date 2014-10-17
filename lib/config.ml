@@ -1,6 +1,11 @@
 open Config_file
 ;;
 
+module Map = Map.Make (struct
+                          type t = string
+                          let compare = compare
+                        end);;
+
 let group = new group
 ;;
 
@@ -57,12 +62,11 @@ let status_purchase =
     "the index at which the value means \"expendable\" state."
 ;;
 
-let location_values =
-  new list_cp string_wrappers ~group ["location"; "values"; ] [] "options."
+let locations =
+  new list_cp (tuple2_wrappers string_wrappers string_wrappers) ~group
+    ["locations"] []
+    "locations where books are put: the first and second components are roles and identifiers of places, respectively."
 ;;
-
-let location_propers =
-  new list_cp string_wrappers ~group ["location"; "propers"; ] [] ""
 
 (* MAIL *)
 
@@ -299,18 +303,18 @@ let status_purchase =
   List.nth status_values (status_purchase # get)
 ;;
 
-let location_values = location_values # get
+let locations =
+  List.fold_left
+    (fun m (k,v) ->
+     if Map.mem k m then begin
+       prerr_endline "there are two or more places whose names are the same.";
+       exit 1
+     end else
+       Map.add k v m)
+    Map.empty (locations # get)
 ;;
 
-let location_proper_assoc =
-  let propers = location_propers # get in
-  if (List.length propers) <> (List.length location_values) then begin
-    prerr_endline "there must be the correspondence between location values and location propers";
-    exit 1
-  end
-  else
-    List.combine location_values propers
-;;
+let location_names = List.map fst (Map.bindings locations)
 
 let mail_domain = mail_domain # get
 ;;

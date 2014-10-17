@@ -3,7 +3,7 @@ open BibmanNet
 
 let check_item =
   let item_to_range = [
-    ("location", Config.location_values);
+    ("location", Config.location_names);
     ("kind", Config.kind_values);
     ("status", Config.status_values);
   ]
