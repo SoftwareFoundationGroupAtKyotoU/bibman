@@ -1,7 +1,9 @@
 **/.git*
+
 script/DB_config.om
 config/configure.ml
 .htaccess
+static/tosho.tex
 
 script/add
 script/remove
