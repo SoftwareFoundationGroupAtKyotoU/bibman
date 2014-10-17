@@ -2,3 +2,4 @@
 script/DB_config.om
 config/configure.ml
 .htaccess
+*.omc
