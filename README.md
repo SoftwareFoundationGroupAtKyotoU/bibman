@@ -21,12 +21,13 @@ This is a bibliography managing tool.
 1. Create database and tables whose schemas are written in
    `config/database.schema`
 
-3. Create static/tosho.tex (if necessary)
+3. Edit `config/configure.ml.example` and `script/DB_config.om.example` to be
+   appropriate in your system
 
 2. Copy
-   a. `config/configure.ml.example` to `config/configure.ml`
-   b. `script/DB_config.om.example` to `script/DB_config.om`
+   1. `config/configure.ml.example` to `config/configure.ml`
+   2. `script/DB_config.om.example` to `script/DB_config.om`
 
-   c. `static/tosho.tex.example`    to `static/tosho.tex` (if necessary)
+3. (Option.) Create static/tosho.tex
 
 3. Type `omake

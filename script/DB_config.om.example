@@ -1,0 +1,4 @@
+setenv(PGHOST, host)
+setenv(PGUSER, user)
+setenv(PGPASSWORD, passwd)
+setenv(PGDATABASE, database)

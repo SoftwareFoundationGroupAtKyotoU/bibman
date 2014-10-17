@@ -1,0 +1,123 @@
+(* root path of uri. *)
+root_path = "/"
+
+(* days for lending. *)
+lending_days = 30
+
+(* number of history records to be output. *)
+number_of_history_records = 3
+
+session = {
+  (* period for preserving session. *)
+  period = {
+    seconds = 0
+    minutes = 0
+    hours = 0
+    days = 1
+  }
+
+  (* salt to generate session id. *)
+  salt = "aqzwxsecrvtfbygunhjimko,lp.;@/:"
+}
+
+kind = {
+  (* options. *)
+  values = ["消耗品"; "図書"; "不明"; "その他"; ]
+  (* the index at which the value means "expendable" state. *)
+  expendable = 0
+}
+
+status = {
+  (* options. *)
+  values = ["未購入"; "注文済"; "購入済"]
+  (* the index at which the value means "purchase" state. *)
+  purchase = 2
+}
+
+(* locations where books are put: the first and second components are informal and formal names of places, respectively. *)
+locations = [
+    ("学生",   "110");
+    ("教員",   "111");
+]
+
+mail = {
+  (* mail domain. *)
+  domain = "example.com"
+
+  (* name (in the first component) and address (in the second component) of
+     mail sender. *)
+  sender = ("hoge", "hoge@example.com")
+
+  (* name and address of staff. *)
+  staff = ("staff", "staff@example.com")
+
+  lending = {
+    (* subject of the mail for lending notifications. *)
+    subject = "蔵書管理システムからのお知らせ"
+    (* content of the mail for lending notifications. Each alphabet following
+       $ is replaced with information of a book.
+        $t: title
+        $a: author names
+        $p: publisher
+        $y: publish year
+        $l: location
+        *)
+    content = "以下の書籍が貸出可能になりました．\n $t. $a. $p, $y. $l.\n"
+  }
+
+  (* same as lending except that this settings are for purchase  . *)
+  purchase = {
+    subject = "蔵書管理システムからのお知らせ"
+    content = "以下の書籍が購入されました．\n $t. $a. $p, $y. $l.\n"
+  }
+
+  (* same as lending except that this settings are for wish-book registration of books. *)
+  wish_book_registered = {
+    subject = "蔵書管理システムからのお知らせ"
+    content = "以下の書籍がほしい本リストに登録されました．\n $t. $a. $p, $y. $l.\n"
+  }
+
+  (* same as lending except that this settings are for removal of a book in wish-book. *)
+  wish_book_removed = {
+    subject = "蔵書管理システムからのお知らせ"
+    content = "以下の書籍がほしい本から削除されました．\n $t. $a. $p, $y. $l.\n"
+  }
+
+  (* this settings are for regenerating password, and the following are available.
+     $u: user account
+     $p: new password
+  *)
+  regen_password = {
+    subject = "蔵書管理システムからのお知らせ"
+    content = "新しいパスワードを発行しました．\n アカウント: $u\n パスワード: $p\n"
+  }
+}
+
+database = {
+  (* host name on which the database service is working *)
+  host = "host"
+  (* user name as who the program connects to the database *)
+  username = "username"
+  (* password for aurhoization of login to the database *)
+  password = "passwd"
+  (* name of the database to be connected *)
+  name = "database"
+}
+
+script = {
+  search = "search_book"
+  my_book = "my"
+  edit = "edit"
+  add = "add"
+  remove = "remove"
+  catalog = "catalog"
+  lending = "lending"
+  user = "user"
+  tex = "tex"
+}
+
+tex = {
+  tosho = "tosho.tex"
+  purchasers = ["鈴木";]
+  budgets = ["予算"; ]
+}
