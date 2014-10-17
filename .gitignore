@@ -1,6 +1,8 @@
+.htaccess
 main.cgi
 api/*.cgi
 
+script/DB_config.om
 script/add
 script/edit
 script/search_book
@@ -10,3 +12,5 @@ script/my
 script/tex
 script/user
 script/remove
+
+config/configure.ml
