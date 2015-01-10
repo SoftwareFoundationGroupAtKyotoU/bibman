@@ -1,4 +1,5 @@
-(* Misc *)
+(* Utilities *)
+
 let hash_of_relation ?(seed=128) rel keyfun valfun =
   let hash = BatHashtbl.create seed in
   List.iter

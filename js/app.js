@@ -39,6 +39,8 @@ if (!Object.keys) {
 
 var Bibman = {};
 
+/* Template handlers */
+
 Bibman.Handlebars = {};
 Bibman.Handlebars.cache = {};
 
@@ -54,6 +56,8 @@ Handlebars.registerHelper('template', function(name, context) {
   return new Handlebars.SafeString(sub_template(ctx));
 });
 
+/* Utility functions */
+
 Bibman.get_global_property = (function () {
   var global = new Function('return this;')();
   return function (prop) {
@@ -68,6 +72,8 @@ Bibman.log = (function () {
     log(action + ': ' + msg);
   };
 })();
+
+/* Defining Class */
 
 Bibman.Class = (function () {
 
@@ -118,6 +124,8 @@ Bibman.Class = (function () {
     return clss;
   };
 })();
+
+/* API call Functions  */
 
 Bibman.config = {};
 
@@ -209,7 +217,7 @@ Bibman.API.ROOT = './../api/';
 
 })();
 
-/* override lend book API to notify changes of lending states */
+/** override lend book API to notify changes of lending states **/
 (function() {
   var api = Bibman.API.lend_book;
 
