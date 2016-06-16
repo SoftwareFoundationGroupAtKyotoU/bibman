@@ -96,9 +96,13 @@ let by_id =
 
 let by_isbn =
   let body dbh isbn =
-    match entry_info_of_isbn dbh isbn with
-    | Some (entry, authors, publisher) ->
-      jsonify_entry entry authors publisher
+    match normalize_isbn isbn with
+    | Some isbn -> begin
+        match entry_info_of_isbn dbh isbn with
+        | Some (entry, authors, publisher) ->
+          jsonify_entry entry authors publisher
+        | None -> raise (Bibman.Invalid_argument "isbn")
+      end
     | None -> raise (Bibman.Invalid_argument "isbn")
   in
 
