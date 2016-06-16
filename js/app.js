@@ -67,7 +67,7 @@ Bibman.get_global_property = (function () {
 
 Bibman.log = (function () {
   var console = Bibman.get_global_property('console');
-  var log = console && console.log ? console.log : function () {};
+  var log = console && console.log ? console.log.bind(console) : function () {};
   return function(action, msg) {
     log(action + ': ' + msg);
   };
