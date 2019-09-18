@@ -92,7 +92,7 @@ let normalize_isbn =
       if len = 10 then true
       else if len = 13 then
         let prefix = String.sub isbn 0 3 in
-        prefix = "978" or prefix = "979"
+        prefix = "978" || prefix = "979"
       else false
   in
 
