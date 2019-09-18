@@ -5,7 +5,7 @@ open Model
 ;;
 
 let by_keywords =
-  let hit keyword str = BatString.exists (String.lowercase str) keyword in
+  let hit keyword str = BatString.exists (String.lowercase_ascii str) keyword in
 
   let hit_filter isbn_to_authors entries keyword =
     List.filter
@@ -58,7 +58,7 @@ let by_keywords =
 
   (* search_book *)
   fun dbh keywords ->
-    let keywords = List.map String.lowercase keywords in
+    let keywords = List.map String.lowercase_ascii keywords in
     let books =
       debug "books";
       PGSQL(dbh) "SELECT * from book WHERE book_id NOT IN (SELECT book_id FROM wish_book)"
