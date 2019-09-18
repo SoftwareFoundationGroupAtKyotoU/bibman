@@ -4,8 +4,8 @@
 if (!Object.keys) {
   Object.keys = (function () {
     var hasOwnProperty = Object.prototype.hasOwnProperty,
-    var hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
-    var dontEnums = [
+        hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
+        dontEnums = [
       'toString',
       'toLocaleString',
       'valueOf',
@@ -14,7 +14,7 @@ if (!Object.keys) {
       'propertyIsEnumerable',
       'constructor'
     ],
-    var dontEnumsLength = dontEnums.length;
+        dontEnumsLength = dontEnums.length;
 
     return function (obj) {
       if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) {
