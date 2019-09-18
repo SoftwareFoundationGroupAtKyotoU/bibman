@@ -51,7 +51,7 @@ let error name msg =
   raise (Invalid_argument name)
 ;;
 
-type 'a process = 'a PGOCaml.t PGOCaml.monad -> string list -> Yojson.json option
+type 'a process = 'a PGOCaml.t PGOCaml.monad -> string list -> Yojson.t option
 ;;
 type 'a action = string * (spec list * 'a process)
 ;;
