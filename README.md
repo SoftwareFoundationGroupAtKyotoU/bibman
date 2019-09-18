@@ -13,6 +13,7 @@ This is a bibliography managing tool.
   * config-file
   * netstring
   * netcgi2
+  * pcre
 * OMake
 * PostgreSQL
 
