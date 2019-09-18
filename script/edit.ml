@@ -2,7 +2,7 @@ open Model
 ;;
 
 let title dbh _ isbn title =
-  PGSQL(dbh) "UPDATE entry SET (title) = ($title) WHERE isbn = $isbn"
+  PGSQL(dbh) "UPDATE entry SET (title) = ROW($title) WHERE isbn = $isbn"
 ;;
 
 let author dbh _ isbn authors =
@@ -19,36 +19,36 @@ let author dbh _ isbn authors =
 
 let publish_year dbh _ isbn pyear =
   let pyear = try Int32.of_string pyear with Failure _ -> raise Exit in
-  PGSQL(dbh) "UPDATE entry SET (publish_year) = ($pyear) WHERE isbn = $isbn"
+  PGSQL(dbh) "UPDATE entry SET (publish_year) = ROW($pyear) WHERE isbn = $isbn"
 ;;
 
 let publisher dbh _ isbn publisher =
   match find_publisher dbh publisher with
   | None -> raise Exit
   | Some pid ->
-    PGSQL(dbh) "UPDATE entry SET (publisher_id) = ($pid) WHERE isbn = $isbn"
+    PGSQL(dbh) "UPDATE entry SET (publisher_id) = ROW($pid) WHERE isbn = $isbn"
 ;;
 
 let location dbh id _ loc =
-  PGSQL(dbh) "UPDATE book SET (location) = ($loc) WHERE book_id = $id"
+  PGSQL(dbh) "UPDATE book SET (location) = ROW($loc) WHERE book_id = $id"
 ;;
 
 let kind dbh id _ kind =
-  PGSQL(dbh) "UPDATE book SET (kind) = ($kind) WHERE book_id = $id"
+  PGSQL(dbh) "UPDATE book SET (kind) = ROW($kind) WHERE book_id = $id"
 ;;
 
 let label dbh id _ label =
-  PGSQL(dbh) "UPDATE book SET (label) = ($label) WHERE book_id = $id"
+  PGSQL(dbh) "UPDATE book SET (label) = ROW($label) WHERE book_id = $id"
 ;;
 
 let status dbh id _ status =
-  PGSQL(dbh) "UPDATE book SET (status) = ($status) WHERE book_id = $id"
+  PGSQL(dbh) "UPDATE book SET (status) = ROW($status) WHERE book_id = $id"
 ;;
 
 let purchase =
   let body dbh bid =
     let () =
-      PGSQL(dbh) "UPDATE book SET (purchase_date) = (now()) WHERE book_id = $bid"
+      PGSQL(dbh) "UPDATE book SET (purchase_date) = ROW(now()) WHERE book_id = $bid"
     in
     match
       first (PGSQL(dbh) "SELECT user_id FROM wish_book WHERE book_id = $bid")
@@ -86,7 +86,7 @@ let alloc_label =
 
   let body dbh bid =
     let label = allocate_label dbh in
-    PGSQL(dbh) "UPDATE book SET (label) = ($label) WHERE book_id = $bid"
+    PGSQL(dbh) "UPDATE book SET (label) = ROW($label) WHERE book_id = $bid"
   in
 
   fun dbh -> function

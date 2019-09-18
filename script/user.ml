@@ -124,7 +124,7 @@ let regenerate_password =
       Bibman.send_mail account Config.regen_password_subject content
     in
     let encrypted_password = Bibman.encrypt new_password in
-    PGSQL(dbh) "UPDATE member SET (password) = ($encrypted_password) WHERE user_id = $uid"
+    PGSQL(dbh) "UPDATE member SET (password) = ROW($encrypted_password) WHERE user_id = $uid"
   in
 
   fun dbh -> function
