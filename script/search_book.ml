@@ -7,16 +7,18 @@ open Model
 let by_keywords =
   let hit keyword str = BatString.exists (String.lowercase_ascii str) keyword in
 
-  let hit_filter isbn_to_authors entries keyword =
+  let hit_filter isbn_to_authors books_with_entry keyword =
     List.filter
-      (fun entry ->
-        let title = title_of_entry entry in
-        let isbn = isbn_of_entry entry in
+      (fun bwe ->
+        let title = title_of_book_with_entry bwe in
+        let isbn = isbn_of_book_with_entry bwe in
+        let label = label_of_book_with_entry bwe in
         let authors = BatHashtbl.find isbn_to_authors isbn in
         hit keyword title ||
         hit keyword isbn ||
-        List.exists (hit keyword) authors)
-      entries
+        List.exists (hit keyword) authors ||
+        hit keyword label) 
+      books_with_entry
   in
 
   let isbn_to_authors dbh isbns : (string, string list) BatHashtbl.t =
@@ -59,33 +61,30 @@ let by_keywords =
   (* search_book *)
   fun dbh keywords ->
     let keywords = List.map String.lowercase_ascii keywords in
-    let books =
-      debug "books";
-      PGSQL(dbh) "SELECT * from book WHERE book_id NOT IN (SELECT book_id FROM wish_book)"
+    let books_with_entry = 
+      debug "books_with_entry";
+      PGSQL(dbh) "SELECT book.*, entry.title, entry.publish_year, entry.publisher_id from book INNER JOIN entry ON book.isbn = entry.isbn WHERE book_id NOT IN (SELECT book_id FROM wish_book)"
     in
-    if BatList.is_empty books then
-      jsonify dbh [] (BatHashtbl.create 0) (BatHashtbl.create 0)
-    else
-      let isbns = List.map isbn_of_book books in
-      let entries =
-        debug "entries";
-        PGSQL(dbh) "SELECT * FROM entry WHERE isbn IN $@isbns"
-      in
-      let isbn_to_authors = isbn_to_authors dbh isbns in
-      let hit_entries =
-        List.fold_left
-          (fun entries keyword -> hit_filter isbn_to_authors entries keyword)
-          entries keywords
-      in
-      let isbn_to_hit_entry =
-        hash_of_map hit_entries isbn_of_entry (fun x -> x)
-      in
-      let hit_books =
-        List.filter
-          (fun book -> BatHashtbl.mem isbn_to_hit_entry (isbn_of_book book))
-          books
-      in
-      jsonify dbh hit_books isbn_to_hit_entry isbn_to_authors
+      if BatList.is_empty books_with_entry then
+        jsonify dbh [] (BatHashtbl.create 0) (BatHashtbl.create 0)
+      else 
+        let isbns = List.map isbn_of_book_with_entry books_with_entry in
+        let isbn_to_authors = isbn_to_authors dbh isbns in 
+        let hit_books_with_entry =
+          List.fold_left
+            (fun bwe keyword -> hit_filter isbn_to_authors bwe keyword)
+            books_with_entry keywords
+        in
+        let hit_entries =
+          List.map entry_of_book_with_entry hit_books_with_entry
+        in
+        let isbn_to_hit_entry =
+          hash_of_map hit_entries isbn_of_entry (fun x -> x)
+        in
+        let hit_books =
+          List.map book_of_book_with_entry hit_books_with_entry
+        in
+        jsonify dbh hit_books isbn_to_hit_entry isbn_to_authors
 ;;
 
 let by_id =

@@ -4,10 +4,10 @@ This is a bibliography managing tool.
 
 ## Requirements
 
-* OCaml (4.00.1 or later) and the following libraries
+* OCaml (4.00.1 or later) and the following libraries **Recommend 4.05 < version < 4.08.0**
   * batteries
-  * pgocaml
-  * pgocaml.syntax
+  * pgocaml **Recommend 3.2**
+  * pgocaml.syntax **Recommend 3.2**
   * cryptokit
   * yojson
   * config-file

@@ -36,7 +36,7 @@ let query (cgi: Netcgi.cgi) query =
   let queries =
     BatList.sort_unique
       String.compare
-      (BatString.nsplit query " ")
+      (BatString.split_on_string " " query)
   in
   redirect_to_script
     cgi

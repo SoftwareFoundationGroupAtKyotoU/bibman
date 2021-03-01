@@ -13,6 +13,15 @@ script/tex
 script/user
 script/remove
 
+script/cron/update_sequence
+
 config/configure.ml
 
 static/tosho.tex
+
+*.cmi
+*.o
+*.cmx
+*.opt
+.omakedb*
+*.omc
