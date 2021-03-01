@@ -245,3 +245,40 @@ let start_date_of_lending (_, _, sdate, _) = sdate
 ;;
 let due_date_of_lending (_, _, _, ddate) = ddate
 ;;
+
+(** book_with_entry **)
+
+type book_with_entry =
+  int32 *    (* book id *)
+  string *   (* ISBN *)
+  string *   (* location *)
+  string *   (* kind *)
+  string *   (* label *)
+  string *   (* status *)
+  CalendarLib.Date.t *      (* register_date *)
+  CalendarLib.Date.t option * (* purchase_date *)
+  string *   (* title *)
+  int32 *    (* publish year *)
+  int32      (* publisher id *)
+;;
+
+let id_of_book_with_entry ((id, _, _, _, _, _, _, _, _, _, _) : book_with_entry) = id
+;;
+let isbn_of_book_with_entry ((_, isbn, _, _, _, _, _, _, _, _, _) : book_with_entry) = isbn
+;;
+let location_of_book_with_entry ((_, _, loc, _, _, _, _, _, _, _, _) : book_with_entry) = loc
+;;
+let kind_of_book_with_entry ((_, _, _, kind, _, _, _, _, _, _, _) : book_with_entry) = kind
+;;
+let label_of_book_with_entry ((_, _, _, _, label, _, _, _, _, _, _) : book_with_entry) = label
+;;    
+let status_of_book_with_entry ((_, _, _, _, _, status, _, _, _, _, _) : book_with_entry) = status
+;;
+let title_of_book_with_entry ((_, _, _, _, _, _, _, _, title, _, _) : book_with_entry) = title
+;;
+let publisher_id_of_book_with_entry ((_, _, _, _, _, _, _, _, _, _, publisher_id) : book_with_entry) = publisher_id
+;;
+let book_of_book_with_entry ((id, isbn, loc, kind, label, status, register_date, purchase_date, _, _, _) : book_with_entry) = (id, isbn, loc, kind, label, status, register_date, purchase_date)
+;;
+let entry_of_book_with_entry ((_, isbn, _, _, _, _, _, _, title, publish_year, publisher_id) : book_with_entry) = (isbn, title, publish_year, publisher_id)
+;;
