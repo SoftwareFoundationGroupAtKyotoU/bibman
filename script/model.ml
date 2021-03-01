@@ -183,7 +183,7 @@ let find_or_insert_author dbh author =
 ;;
 
 let authors_of_string authors =
-  let authors = List.map BatString.trim (BatString.nsplit authors ",") in
+  let authors = List.map BatString.trim (BatString.split_on_string "," authors) in
   if BatList.is_empty authors || List.exists BatString.is_empty authors then
     None
   else
