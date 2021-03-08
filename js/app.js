@@ -210,6 +210,9 @@ Bibman.API.ROOT = './../api/';
       settings: { dataType: 'text' }
     },
     { name: 'download_csv', url: 'download_csv.cgi', type: 'GET' },
+    { name: 'remove_book', url: 'remove_book.cgi', type: 'POST',
+      settings: { dataType: 'text' }
+    },
   ].forEach(register_api);
 
   [
@@ -758,8 +761,11 @@ Bibman.BookList.UI.SortDrawer = Bibman.Class({
 Bibman.BookList.UI.SearchDrawer = Bibman.Class({
   _base: Bibman.BookList.UI.SortDrawer,
   _constructor: function(booklist, stepUI, elements) {
-    this._super(booklist, {}, elements);
-
+    if (Bibman.is_admin === "true") {
+      this._super(booklist, {removable: true}, elements);
+    } else {
+      this._super(booklist, {}, elements);
+    }
     this._step_draw = function(page_idx, count_per_page) {
       var $step = stepUI.form(page_idx, count_per_page);
       elements.$step.each(function () {
@@ -871,17 +877,31 @@ Bibman.init.load_callbacks.add(function () {
       var stepUI = new Bibman.ListStepUI(booklist.count(), 'top-anchor');
       var $sort = $('#search-sort');
       var $count_per_page = $('#search-count-per-page');
+      var $list = $('#book-search-list');
+      var elements = {
+        show: function() { Bibman.UI.show($list, $sort); },
+        hide: function() { Bibman.UI.hide($list, $sort); }
+      };
 
       var drawer = new Bibman.BookList.UI.SearchDrawer(
         booklist,
         stepUI,
         {
-          $list: $('#book-search-list'),
+          $list: $list,
           $sort: $sort,
           $step: $('#search-contents .list-step'),
           $count_per_page: $count_per_page
         }
       );
+
+      /* remove event */
+      $list.unbind('click');
+      $list.click(function(e) {
+        var $target = $(e.target);
+        if ($target.hasClass('remove')) {
+          remove_event_handler($target, booklist, elements, drawer);
+        }
+      });
 
       stepUI.on_change_page(function(e) { drawer.draw(e.value); });
 
@@ -891,7 +911,14 @@ Bibman.init.load_callbacks.add(function () {
       $count_per_page.unbind('change');
       $count_per_page.change(function() { drawer.draw(0); });
 
-      drawer.list();
+      /* show wish books if exist */
+      if (booklist.count() === 0) {
+        elements.hide();
+      }
+      else {
+        elements.show();
+        drawer.list();
+      }
     });
   }
 
@@ -900,6 +927,30 @@ Bibman.init.load_callbacks.add(function () {
     on_search();
     return false;
   });
+
+  
+  function remove_book_from_booklist(id, booklist, elements, drawer) {
+    booklist.remove(id);
+    if (booklist.count() === 0) {
+      elements.hide();
+    }
+    else {
+      drawer.list();
+    }
+  }
+
+  function remove_event_handler($target, booklist, elements, drawer) {
+    if (!window.confirm('書籍をデータベースから削除します．この操作は元に戻すことができません．また、管理者権限を持つ人のみが実行できます．それでもよろしいですか？')) return;
+
+    var id = $target.parents('.book-item').data('book-id');
+    Bibman.API.remove_book({ id: id })
+    .done(function() {
+      remove_book_from_booklist(id, booklist, elements, drawer);
+    })
+    .fail(function() {
+      window.alert('本の削除に失敗しました．');
+    });
+  }
 });
 
 Bibman.init.load_callbacks.add(function() {
