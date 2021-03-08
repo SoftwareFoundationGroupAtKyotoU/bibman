@@ -7,7 +7,8 @@ let list dbh _ =
     PGSQL(dbh) "nullable-results" "SELECT entry.title, book.location, book.kind, book.status, book.label, entry.isbn, member.account from book \
     INNER JOIN entry ON book.isbn = entry.isbn \
     LEFT OUTER JOIN lending ON book.book_id = lending.book_id \
-    LEFT OUTER JOIN member ON lending.user_id = member.user_id"
+    LEFT OUTER JOIN member ON lending.user_id = member.user_id \
+    WHERE book.book_id NOT IN (SELECT book_id FROM wish_book)"
   in
   let dq = "\"" in
   let concat_symbol = "\",\"" in
