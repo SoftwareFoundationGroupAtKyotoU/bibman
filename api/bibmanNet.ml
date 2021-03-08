@@ -144,7 +144,7 @@ let redirect_to_script
     (cgi : Netcgi.cgi)
     ?(content_type = MimeType.json)
     ?(filename = "")
-    ?(output : string -> unit = cgi # out_channel  # output_string)
+    ?(output : string -> unit = cgi # out_channel # output_string)
     (script_file : string)
     (args : string list)
     : bool
@@ -276,23 +276,11 @@ let certification_and_admin_check_wrapper =
     match m with
     | None -> cert_error_handler cgi
     | Some _ ->
-      let m =
-        try Some (
-          get_cookie cookie_login_account,
-          get_cookie cookie_secret_certification_key
-        )
-        with
-          Not_found -> None
-      in
       let m = bind m
-        (fun (account_cookie, _) ->
-          let account = Netcgi.Cookie.value account_cookie in
-          let m =
-            process_command
-              Config.script_user
-              [ "is_user_admin"; account; ]
-          in
-          bind m (fun _ -> Some account)
+        (fun account ->
+          match process_command Config.script_user [ "is_user_admin"; account; ] with
+          | None -> None
+          | Some _ -> Some account
         )
       in
       let m = bind m (fun account -> Some (f cgi account)) in
