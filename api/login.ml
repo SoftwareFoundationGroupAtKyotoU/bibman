@@ -10,13 +10,29 @@ let main (cgi : Netcgi.cgi) =
     process_command Config.script_user [ "generate_session"; account; ]
   )
   in
-  match m with
-  | None -> raise (BibmanNet.Invalid_argument "account")
-  | Some session_id -> begin
+  let is_user_admin = process_command Config.script_user [ "is_user_admin"; account] in
+  match m, is_user_admin with
+  | Some session_id, Some _ -> begin
+    let json = `Assoc [
+      ("account", `String account);
+      ("is_admin", `String "true")
+    ]
+    in
     set_certification_info ~account ~session_id ~cookie_path:Config.root_path cgi;
-    cgi # out_channel # output_string account;
+    cgi # out_channel # output_string (Yojson.pretty_to_string json);
     cgi # out_channel # commit_work ()
   end
+  | Some session_id, None -> begin
+    let json = `Assoc [
+      ("account", `String account);
+      ("is_admin", `String "false")
+    ]
+    in
+    set_certification_info ~account ~session_id ~cookie_path:Config.root_path cgi;
+    cgi # out_channel # output_string (Yojson.pretty_to_string json);
+    cgi # out_channel # commit_work ()
+  end
+  | _ -> raise (BibmanNet.Invalid_argument "account")
 ;;
 
 let () = run
