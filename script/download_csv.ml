@@ -15,7 +15,7 @@ let list dbh _ =
     (List.fold_left
     (fun a b -> a ^ b)
     (dq ^ "title" ^ concat_symbol ^ "location" ^ concat_symbol ^ "kind"
-     ^ concat_symbol ^ "status" ^ concat_symbol ^ "label" ^ concat_symbol ^ "isbn" ^ concat_symbol ^ "account" ^ "\"n")
+     ^ concat_symbol ^ "status" ^ concat_symbol ^ "label" ^ concat_symbol ^ "isbn" ^ concat_symbol ^ "account" ^ "\"\n")
     (List.map (fun bd -> csv_of_book_detail bd) lists))
   )
 ;;
