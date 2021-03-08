@@ -287,3 +287,33 @@ let book_of_book_with_entry ((id, isbn, loc, kind, label, status, register_date,
 ;;
 let entry_of_book_with_entry ((_, isbn, _, _, _, _, _, _, title, publish_year, publisher_id) : book_with_entry) = (isbn, title, publish_year, publisher_id)
 ;;
+
+(* book_detail *)
+
+type book_detail =
+  string option *   (* entry.title *)
+  string option *   (* book.location *)
+  string option *   (* book.kind *)
+  string option *   (* book.status *)
+  string option *   (* book.label *)
+  string option *   (* entry.isbn *)
+  string option     (* member.account *)
+;;
+
+let csv_of_book_detail ((title, loc, kind, status, label, isbn, account) : book_detail) =
+  let some op = match op with
+    | Some v  -> v
+    | None    -> assert false
+  in
+  let nullable_some account = match account with
+    | Some a  -> a ^ "\"\n"
+    | None    -> "\"\n"
+  in
+  let concat_symbol = "\",\"" in
+  "\"" ^ (some title) ^ concat_symbol 
+    ^ (some loc) ^ concat_symbol
+    ^ (some kind) ^ concat_symbol
+    ^ (some status) ^ concat_symbol
+    ^ (some label) ^ concat_symbol
+    ^ (some isbn) ^ concat_symbol ^ (nullable_some account)
+;;

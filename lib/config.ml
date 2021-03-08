@@ -178,6 +178,9 @@ let script_user = new string_cp ~group ["script"; "user"; ] "" ""
 let script_tex = new string_cp ~group ["script"; "tex"; ] "" ""
 ;;
 
+let script_download_csv = new string_cp ~group ["script"; "download_csv"; ] "" ""
+;;
+
 (* TEX *)
 let tex_tosho = new string_cp ~group ["tex"; "tosho"; ] "" ""
 ;;
@@ -404,6 +407,9 @@ let script_user = script_file_path script_user
 ;;
 
 let script_tex = script_file_path script_tex
+;;
+
+let script_download_csv = script_file_path script_download_csv
 ;;
 
 

@@ -16,6 +16,7 @@ script/user
 script/tex
 script/deploy
 script/deploy.exclude
+script/download_csv
 
 *.omc
 *.lock
