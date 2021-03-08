@@ -212,6 +212,11 @@ let account_of_user_id dbh uid =
     (PGSQL(dbh) "SELECT account FROM member WHERE user_id = $uid")
 ;;
 
+let is_admin_of_user_id dbh uid =
+  BatList.first
+    (PGSQL(dbh) "SELECT is_admin FROM member WHERE user_id = $uid")
+;;
+
 (** history **)
 type history =
   int32 *   (* book id *)
