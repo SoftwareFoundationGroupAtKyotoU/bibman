@@ -18,11 +18,13 @@ $(document).ready(function () {
     else {
       $.ajax({
         data: { account: account, password: password },
-        dataType: 'text',
+        dataType: 'json',
         type: 'POST',
         url: './api/login.cgi'
-      }).done(function (account) {
-        document.location = './~' + account + '/';
+      }).done(function (cert) {
+        console.log(cert.is_admin);
+        sessionStorage["is_admin"] = cert.is_admin;
+        document.location = './~' + cert.account + '/';
       }).fail(function () {
         window.alert('アカウントもしくはパスワードが不正です．');
       });

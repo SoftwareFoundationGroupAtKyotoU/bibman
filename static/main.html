@@ -161,6 +161,7 @@
       <ul>
         <li onclick="Bibman.switch_tab('search-contents')">検索</li>
         <li onclick="Bibman.switch_tab('book-register')">書籍登録</li>
+        <li onclick="Bibman.switch_tab('admin-page')" class="admin-only" style="display: none">管理メニュー</li>
         <li onclick="Bibman.switch_tab('my-page')" style="font-size: 1.2em;">$u</li>
         <li style="float:right" id="logout">ログアウト</li>
       </ul>
@@ -337,6 +338,11 @@
       <div id="my-reservation"></div>
       <h3>貸出履歴</h3>
       <div id="my-history"></div>
+    </div>
+    <div id="admin-page" class="contents" style="display: none">
+      <h3>書籍一覧ダウンロード</h3>
+      <div>書籍情報と、現在の貸し出し先のユーザーの一覧をcsv形式でダウンロードすることができます。</div>
+      <button onclick="Bibman.download_csv()">ダウンロード</button>
     </div>
   </body>
 </html>

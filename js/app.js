@@ -177,6 +177,8 @@ Bibman.API.ROOT = './../api/';
         if (jqXHR.status === 403 &&
             jqXHR.responseText === "You aren't certificated") {
           window.alert('セッションの有効期限を過ぎました．再度ログインし直してください');
+        } else if (jqXHR.responseText === "You aren't admin") {
+          window.alert('あなたには管理者権限がありません．');
         }
       });
     };
@@ -206,7 +208,8 @@ Bibman.API.ROOT = './../api/';
     },
     { name: 'allocate_label', url: 'allocate_label.cgi', type: 'POST',
       settings: { dataType: 'text' }
-    }
+    },
+    { name: 'download_csv', url: 'download_csv.cgi', type: 'GET' },
   ].forEach(register_api);
 
   [
@@ -793,6 +796,7 @@ Bibman.BookList.UI.AllDrawer = Bibman.Class({
 
 /* init function */
 Bibman.user = undefined;
+Bibman.is_admin = undefined;
 
 Bibman.init = (function() {
   var init = function(account) {
@@ -806,7 +810,12 @@ Bibman.init = (function() {
 
         var account = $('#account').val();
         Bibman.user = { account: function() { return account; } };
-
+        Bibman.is_admin = sessionStorage["is_admin"];
+        if (Bibman.is_admin === "true") {
+          $('.admin-only').css('display', '');
+        } else {
+          $('.admin-only').remove();
+        }
         init.load_callbacks.fire();
       }
     );
@@ -1434,6 +1443,7 @@ Bibman.init.load_callbacks.add(function () {
     var content_type = 'application/x-www-form-urlencoded; charset=UTF-8';
     Bibman.API.logout({}, { contentType: content_type })
       .always(function () {
+        sessionStorage.removeItem("is_admin");
         window.location = window.location.href.replace(/\/[^\/]+\/?#?$/, '/');
       });
   });
@@ -1446,3 +1456,14 @@ Bibman.switch_tab = function(id) {
   window.location.hash = 'top-anchor';
   window.location.hash = '';
 };
+
+/* swtich contents */
+Bibman.download_csv = function () {
+  var url = Bibman.API.ROOT + '/download_csv.cgi';
+
+  $.fileDownload(url, {
+    failCallback: function() {
+      window.alert('ファイルのダウンロードに失敗しました．管理者権限を確認してください．');
+    },
+  });
+}
