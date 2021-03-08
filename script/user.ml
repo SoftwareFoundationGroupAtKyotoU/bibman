@@ -134,12 +134,31 @@ let regenerate_password =
   | _ -> assert false
 ;;
 
+let is_user_admin =
+  let raise_exception () =
+    raise (Bibman.Invalid_argument "is_admin")
+  in
+
+  let body dbh uid =
+    match (Model.is_admin_of_user_id dbh uid) with
+    | true -> ()
+    | false -> raise_exception ()
+  in
+
+  fun dbh -> function
+  | account :: [] ->
+    body dbh (Bibman.user_id_or_raise dbh account);
+    None
+  | _ -> assert false
+;;
+
 let actions = [
   ("generate_session", ([`NonEmpty "account"; ], generate_session));
   ("certificate", ([`NonEmpty "account"; `NonEmpty "session_id"], certificate));
   ("confirm", ([`NonEmpty "account"; `NonEmpty "password"], confirm));
   ("logout", ([`NonEmpty "account"; ], logout));
   ("regenerate_password", ([`NonEmpty "account"; ], regenerate_password));
+  ("is_user_admin", ([`NonEmpty "account"; ], is_user_admin));
 ]
 ;;
 

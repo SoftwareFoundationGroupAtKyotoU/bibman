@@ -31,6 +31,8 @@ APIS[] =
 	publisher
 	regen_password
 	allocate_label
+	download_csv
+	remove_book
 
 CGIS[] =
 	$(APIS)

@@ -16,12 +16,15 @@ module MimeType = struct
   let tex = "application/x-tex"
   ;;
 
+  let csv = "text/csv"
+
   let all_types = [
     html;
     json;
     text;
     form_encoded;
     tex;
+    csv;
   ]
   ;;
 
@@ -140,12 +143,13 @@ let process_command (prog : string) (args : string list) : string option =
 let redirect_to_script
     (cgi : Netcgi.cgi)
     ?(content_type = MimeType.json)
-    ?(output : string -> unit = cgi # out_channel  # output_string)
+    ?(filename = "")
+    ?(output : string -> unit = cgi # out_channel # output_string)
     (script_file : string)
     (args : string list)
     : bool
     =
-  cgi # set_header ~content_type ();
+  cgi # set_header ~content_type ~filename ();
   let res = process_command script_file args in
   let res = match res with
   | Some txt -> output txt; true
@@ -223,4 +227,64 @@ let certification_check_wrapper =
     match m with
     | Some _ -> ()
     | None -> error_handler cgi
+;;
+
+let certification_and_admin_check_wrapper =
+  let cert_error_handler (cgi : Netcgi.cgi) =
+    cgi # out_channel # output_string "You aren't certificated";
+    cgi # set_header
+      ~status:`Forbidden
+      ~content_type:MimeType.text
+      ()
+  in
+
+  let admin_error_handler (cgi : Netcgi.cgi) =
+    cgi # out_channel # output_string "You aren't admin";
+    cgi # set_header
+      ~status:`Forbidden
+      ~content_type:MimeType.text
+      ()
+  in
+
+  fun
+    ?(error_handler : Netcgi.cgi -> unit = admin_error_handler)
+    (f : Netcgi.cgi -> string (* account *) -> 'a)
+    (cgi : Netcgi.cgi)
+  ->
+    let get_cookie = cgi # environment # cookie in
+    let open BatOption.Monad in
+    let m =
+      try Some (
+        get_cookie cookie_login_account,
+        get_cookie cookie_secret_certification_key
+      )
+      with
+        Not_found -> None
+    in
+    let m = bind m
+      (fun (account_cookie, session_id_cookie) ->
+        let account = Netcgi.Cookie.value account_cookie in
+        let session_id = Netcgi.Cookie.value session_id_cookie in
+        let m =
+          process_command
+            Config.script_user
+            [ "certificate"; account; session_id; ]
+        in
+        bind m (fun _ -> Some account)
+      )
+    in
+    match m with
+    | None -> cert_error_handler cgi
+    | Some _ ->
+      let m = bind m
+        (fun account ->
+          match process_command Config.script_user [ "is_user_admin"; account; ] with
+          | None -> None
+          | Some _ -> Some account
+        )
+      in
+      let m = bind m (fun account -> Some (f cgi account)) in
+      match m with
+      | Some _ -> ()
+      | None -> error_handler cgi
 ;;

@@ -28,6 +28,7 @@ SCRIPTS[] =
 	catalog
 	edit
 	lending
+	download_csv
 	my
 	search_book
 	user
