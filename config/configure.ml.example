@@ -114,6 +114,7 @@ script = {
   lending = "lending"
   user = "user"
   tex = "tex"
+  download_csv = "download_csv"
 }
 
 tex = {
