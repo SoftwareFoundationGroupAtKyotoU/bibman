@@ -12,6 +12,7 @@ OCAMLPACKS[] =
 	config-file
 	netstring
 	pcre
+	text
 
 OCAMLINCLUDES += ../lib
 
