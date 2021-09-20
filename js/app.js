@@ -1510,7 +1510,7 @@ Bibman.switch_tab = function(id) {
 
 /* swtich contents */
 Bibman.download_csv = function () {
-  var url = Bibman.API.ROOT + '/download_csv.cgi';
+  var url = Bibman.API.ROOT + 'download_csv.cgi';
 
   $.fileDownload(url, {
     failCallback: function() {

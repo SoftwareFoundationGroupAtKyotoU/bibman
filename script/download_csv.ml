@@ -12,13 +12,13 @@ let list dbh _ =
   in
   let dq = "\"" in
   let concat_symbol = "\",\"" in
-  Some (`Stringlit
-    (List.fold_left
+  let csv_str = (List.fold_left
     (fun a b -> a ^ b)
     (dq ^ "title" ^ concat_symbol ^ "location" ^ concat_symbol ^ "kind"
-     ^ concat_symbol ^ "status" ^ concat_symbol ^ "label" ^ concat_symbol ^ "isbn" ^ concat_symbol ^ "account" ^ "\"\n")
+    ^ concat_symbol ^ "status" ^ concat_symbol ^ "label" ^ concat_symbol ^ "isbn" ^ concat_symbol ^ "account" ^ "\"\n")
     (List.map (fun bd -> csv_of_book_detail bd) lists))
-  )
+  in
+  (Some (`Stringlit (Encoding.recode_string "UTF8" "Shift_JIS" csv_str)))
 ;;
 
 let actions = [
