@@ -14,6 +14,7 @@ This is a bibliography managing tool.
   * netstring
   * netcgi2
   * pcre
+  * text
 * OMake
 * PostgreSQL
 
