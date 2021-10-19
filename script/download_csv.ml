@@ -3,8 +3,11 @@ open Model
 
 let list dbh _ =
   (* CONCAT_WS (',' ,entry.title, book.location, book.kind, book.status, book.label, entry.isbn, entry.title, member.account) *)
+  (* DB values defined utf-8 in db configuration *)
+  (* ShiftJIS needs for default excel *)
   let lists = 
-    PGSQL(dbh) "nullable-results" "SELECT entry.title, book.location, book.kind, book.status, book.label, entry.isbn, member.account from book \
+    PGSQL(dbh) "nullable-results" 
+    "SELECT convert_to(CONCAT_WS(',', entry.title, book.location, book.kind, book.status, book.label, entry.isbn, COALESCE(member.account, '')), 'shift_jis') from book \ \
     INNER JOIN entry ON book.isbn = entry.isbn \
     LEFT OUTER JOIN lending ON book.book_id = lending.book_id \
     LEFT OUTER JOIN member ON lending.user_id = member.user_id \
@@ -18,7 +21,7 @@ let list dbh _ =
     ^ concat_symbol ^ "status" ^ concat_symbol ^ "label" ^ concat_symbol ^ "isbn" ^ concat_symbol ^ "account" ^ "\"\n")
     (List.map (fun bd -> csv_of_book_detail bd) lists))
   in
-  (Some (`Stringlit (Encoding.recode_string "UTF8" "Shift_JIS" csv_str)))
+    (Some (`Stringlit (csv_str)))
 ;;
 
 let actions = [
