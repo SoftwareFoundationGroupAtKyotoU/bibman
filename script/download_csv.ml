@@ -7,7 +7,7 @@ let list dbh _ =
   (* ShiftJIS needs for default excel *)
   let lists = 
     PGSQL(dbh) "nullable-results" 
-    "SELECT convert_to(CONCAT_WS(',', entry.title, book.location, book.kind, book.status, book.label, entry.isbn, COALESCE(member.account, '')), 'shift_jis') from book \ \
+    "SELECT convert_to(CONCAT_WS(',', entry.title, book.location, book.kind, book.status, book.label, entry.isbn, COALESCE(member.account, '')), 'shift_jis') from book \
     INNER JOIN entry ON book.isbn = entry.isbn \
     LEFT OUTER JOIN lending ON book.book_id = lending.book_id \
     LEFT OUTER JOIN member ON lending.user_id = member.user_id \
