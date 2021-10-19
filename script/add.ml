@@ -10,6 +10,11 @@ let isbn_exists_in_book dbh isbn =
   not (BatList.is_empty (PGSQL (dbh) "SELECT 1 FROM book WHERE isbn = $isbn"))
 ;;
 
+let exact_convert_sjis_boolean l =
+  match List.hd l with
+    Some(x) -> x
+  | _ -> assert false 
+
 let entry =
   let body dbh isbn title authors pyear publisher =
     if isbn_exists dbh isbn then added_already "ISBN" isbn
@@ -21,14 +26,20 @@ let entry =
             "publisher"
             (Printf.sprintf "Publisher %s hasn't been registered" publisher)
       in
-      PGSQL(dbh)
-        "INSERT INTO entry (isbn, title, publish_year, publisher_id) VALUES ($isbn, $title, $pyear, $pid)";
-      let aids = List.map (find_or_insert_author dbh) authors in
-      List.iter
-        (fun aid ->
-          PGSQL(dbh)
-            "INSERT INTO rel_entry_authors (isbn, author_id) VALUES ($isbn, $aid)")
-        aids
+      let can_convert_sjis = PGSQL(dbh) "SELECT can_convert_sjis($isbn) AND can_convert_sjis($title);" in
+      if (exact_convert_sjis_boolean can_convert_sjis) then
+        (PGSQL(dbh)
+          "INSERT INTO entry (isbn, title, publish_year, publisher_id) VALUES ($isbn, $title, $pyear, $pid)";
+        let aids = List.map (find_or_insert_author dbh) authors in
+        List.iter
+          (fun aid ->
+            PGSQL(dbh)
+              "INSERT INTO rel_entry_authors (isbn, author_id) VALUES ($isbn, $aid)")
+          aids)
+      else 
+        Bibman.error
+        "input"
+        (Printf.sprintf "Incorrect input detected")
     end
   in
 
@@ -51,12 +62,18 @@ let book =
         "isbn"
         (Printf.sprintf "ISBN %s hasn't been registered as entry" isbn)
     else begin
-      PGSQL(dbh)
-        "INSERT INTO book (isbn, location, kind, label, status) VALUES ($isbn, $loc, $kind, $label, $status)";
-      let bid_opt = BatList.first (PGSQL(dbh) "SELECT currval('book_book_id_seq')") in
-      match bid_opt with
-      | Some bid -> `Intlit (Int64.to_string bid)
-      | None -> assert false
+      let can_convert_sjis = PGSQL(dbh) "SELECT can_convert_sjis($isbn) AND can_convert_sjis($label);" in
+      if (exact_convert_sjis_boolean can_convert_sjis) then
+        (PGSQL(dbh)
+          "INSERT INTO book (isbn, location, kind, label, status) VALUES ($isbn, $loc, $kind, $label, $status)";
+        let bid_opt = BatList.first (PGSQL(dbh) "SELECT currval('book_book_id_seq')") in
+        match bid_opt with
+        | Some bid -> `Intlit (Int64.to_string bid)
+        | None -> assert false)
+      else 
+        Bibman.error
+        "input"
+        (Printf.sprintf "Incorrect input detected")
     end
   in
 
@@ -106,7 +123,14 @@ let publisher =
   let body dbh publisher =
     match find_publisher dbh publisher with
     | Some _ -> added_already "Publisher" publisher
-    | None -> PGSQL(dbh) "INSERT INTO publisher (name) VALUES ($publisher)"
+    | None -> 
+      let can_convert_sjis = PGSQL(dbh) "SELECT can_convert_sjis($publisher);" in
+      if (exact_convert_sjis_boolean can_convert_sjis) then
+        PGSQL(dbh) "INSERT INTO publisher (name) VALUES ($publisher)"
+      else
+        Bibman.error
+        "input"
+        (Printf.sprintf "Incorrect input detected")
   in
 
   fun dbh -> function
