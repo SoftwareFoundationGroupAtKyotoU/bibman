@@ -1,274 +1,271 @@
 html {
-    overflow-y: scroll;
+  overflow-y: scroll;
 }
 
 .contents {
-    position: relative;
-    top: 50px;
-    margin: auto;
-    width: 80%;
-    text-align: center;
-    min-width: 750px;
-    margin: 0px auto 0px auto;
+  position: relative;
+  top: 50px;
+  margin: auto;
+  width: 80%;
+  text-align: center;
+  min-width: 750px;
+  margin: 0px auto 0px auto;
 }
-
 
 /* MENU */
 
 #menu {
-    z-index: 1;
-    background-color: #DDEEFF;
-    height: 35px;
-    width: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    min-width: 500px;
-    border-bottom: 1px solid;
+  z-index: 1;
+  background-color: #ddeeff;
+  height: 35px;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  min-width: 500px;
+  border-bottom: 1px solid;
 }
 
 #menu > ul {
-    margin-top: 0px;
-    margin-bottom: 0px;
-    padding: 5px 0px 5px 0px;
-    list-style: none outside none;
-    padding-right: 1%
+  margin-top: 0px;
+  margin-bottom: 0px;
+  padding: 5px 0px 5px 0px;
+  list-style: none outside none;
+  padding-right: 1%;
 }
 
 #menu > ul > li {
-    display: inline-block;
-    padding: 0px 20px 0px 20px;
-    text-decoration: none;
-    cursor: pointer;
+  display: inline-block;
+  padding: 0px 20px 0px 20px;
+  text-decoration: none;
+  cursor: pointer;
 }
-
 
 /* SEARCH */
 
 #search-text {
-    min-width: 200px;
-    width: 80%;
-    border-radius: 7px;
-    font-size: 2em;
-    vertical-align: middle;
-    height: 30px;
+  min-width: 200px;
+  width: 80%;
+  border-radius: 7px;
+  font-size: 2em;
+  vertical-align: middle;
+  height: 30px;
 }
 
 #search-submit {
-    height: 36px;
-    font-size: 1.3em;
-    width: 100px;
-    vertical-align: middle;
-    border-radius: 7px;
-    margin-left: 10px;
+  height: 36px;
+  font-size: 1.3em;
+  width: 100px;
+  vertical-align: middle;
+  border-radius: 7px;
+  margin-left: 10px;
 }
 
 #search-form {
-    background-color: #DDEEFF;
-    position: relative;
-    text-align: left;
-    padding: 25px 30px 25px 30px;
-    padding-left: 60px;
-    margin: 0px 25px 0px 25px;
-    border: 1px solid;
-    border-radius: 7px;
+  background-color: #ddeeff;
+  position: relative;
+  text-align: left;
+  padding: 25px 30px 25px 30px;
+  padding-left: 60px;
+  margin: 0px 25px 0px 25px;
+  border: 1px solid;
+  border-radius: 7px;
 }
 
 #search-form > form {
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
 #search-select {
-    margin: 0px 0px 7px 0px;
+  margin: 0px 0px 7px 0px;
 }
-
 
 /* BOOK LIST */
 
 .book-list {
-    clear: both;
-    font-size: 1.3em;
-    border: 1px darkcyan solid;
-    border-radius: 7px;
-    padding-bottom: 20px;
-    list-style-type: none
+  clear: both;
+  font-size: 1.3em;
+  border: 1px darkcyan solid;
+  border-radius: 7px;
+  padding-bottom: 20px;
+  list-style-type: none;
 }
 
 .book-list > li {
-    text-align: left;
-    margin-bottom: 5px;
-    font-size: 0.77em;
-    position: relative;
-    border-bottom: 1px solid;
-    padding-top: 20px;
-    margin-right: 30px;
+  text-align: left;
+  margin-bottom: 5px;
+  font-size: 0.77em;
+  position: relative;
+  border-bottom: 1px solid;
+  padding-top: 20px;
+  margin-right: 30px;
 }
 
 .book-list .item {
-    padding-bottom: 5px;
+  padding-bottom: 5px;
 }
 
 .book-list .item .book-description-short {
-    padding-bottom: 3px;
+  padding-bottom: 3px;
 }
 
 .book-list .item .lending form {
-    display: inline-block
+  display: inline-block;
 }
 
 .book-list .item .book-description {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
-.book-list
-
-.book-detail td {
-    padding-left: 10px;
+.book-list .book-detail td {
+  padding-left: 10px;
 }
 
 .book-list .expand {
-    vertical-align: top;
-    padding-top: 5px;
-    padding-right: 10px;
+  vertical-align: top;
+  padding-top: 5px;
+  padding-right: 10px;
 }
 
 .book-list .edit-icon img {
-    width: 12px;
-    height: 12px;
-    cursor: pointer;
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
 }
 
 .list-sort {
-    text-align: right;
-    margin: 10px 5px 10px 5px;
-    float: right;
+  text-align: right;
+  margin: 10px 5px 10px 5px;
+  float: right;
 }
 
 .list-sort > select {
-    border-radius: 5px;
+  border-radius: 5px;
 }
 
 .list-step {
-    margin: 10px 5px 10px 25px;
-    font-size: 130%;
+  margin: 10px 5px 10px 25px;
+  font-size: 130%;
 }
 
 .list-step a {
-    margin-left: 5px;
+  margin-left: 5px;
 }
-
 
 /* RENTAL HISTORY */
 
 .lending-history {
-    margin-top: 10px;
+  margin-top: 10px;
 }
 
 .lending-history table {
-    border-collapse: collapse;
+  border-collapse: collapse;
 }
 
-.lending-history td, .lending-history th {
-    border: 1px solid;
-    padding: 2px 7px 2px 7px;
+.lending-history td,
+.lending-history th {
+  border: 1px solid;
+  padding: 2px 7px 2px 7px;
 }
 
 .lending-history th.user {
-    width: 100px;
+  width: 100px;
 }
-
 
 /* BOOK REGISTER */
 
 #register {
-    width: 700px;
-    margin: 0px auto 20px auto;
+  width: 700px;
+  margin: 0px auto 20px auto;
 }
 
 #register th {
-    text-align: left;
-    width: 100px;
+  text-align: left;
+  width: 100px;
 }
 
 #register td {
-    text-align: left;
+  text-align: left;
 }
 
 h3 {
-    text-align: left;
+  text-align: left;
+}
+
+h4 {
+  text-align: left;
 }
 
 #register .text {
-    margin-right: 5px;
+  margin-right: 5px;
 }
 
 #register .note {
-    font-size: 0.8em;
-    vertical-align: bottom;
+  font-size: 0.8em;
+  vertical-align: bottom;
 }
-
 
 /* MISC */
 
 .tex-download {
-    margin: 5px 0px 5px 0px;
-    padding-top: 10px;
+  margin: 5px 0px 5px 0px;
+  padding-top: 10px;
 }
 
 input {
-    font-size: 0.8em;
+  font-size: 0.8em;
 }
 
 .edit-mark {
-    margin-left: 2px;
-    width: 8px;
-    height: 8px;
-    cursor: pointer;
+  margin-left: 2px;
+  width: 8px;
+  height: 8px;
+  cursor: pointer;
 }
 
 .display-none {
-    display: none;
+  display: none;
 }
 
 .item-name {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 #purchase-frame {
-    position: fixed;
-    margin: auto;
-    z-index: 1000;
-    top: 10%;
-    height: 70%;
-    width: 70%;
-    min-width: 400px;
-    background: none repeat scroll 0 0 white;
-    box-shadow: 0 3px 10px rgba(34, 25, 25, 0.7);
-    text-align: left;
-    padding: 50px 70px 50px 70px;
+  position: fixed;
+  margin: auto;
+  z-index: 1000;
+  top: 10%;
+  height: 70%;
+  width: 70%;
+  min-width: 400px;
+  background: none repeat scroll 0 0 white;
+  box-shadow: 0 3px 10px rgba(34, 25, 25, 0.7);
+  text-align: left;
+  padding: 50px 70px 50px 70px;
 }
 
 #purchase-frame-tex {
-    border: 3px solid skyblue;
-    border-radius: 20px;
-    width: 80%;
-    padding: 10px 0px 10px 0px;
-    margin: auto;
+  border: 3px solid skyblue;
+  border-radius: 20px;
+  width: 80%;
+  padding: 10px 0px 10px 0px;
+  margin: auto;
 }
 
 #purchase-overlay {
-    opacity: 0.6;
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-    background: white;
+  opacity: 0.6;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  background: white;
 }
 
 #purchase-frame a.button {
-    display: block;
-    padding: 20px 0px 0px 0px;
-    text-decoration: none;
-    cursor: pointer;
+  display: block;
+  padding: 20px 0px 0px 0px;
+  text-decoration: none;
+  cursor: pointer;
 }
